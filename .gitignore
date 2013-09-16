@@ -1,0 +1,7 @@
+.cproject
+.project
+
+software/build/
+.sconsign.dblite
+
+*.bak
