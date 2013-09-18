@@ -11421,7 +11421,7 @@ grid 2.54 mm</description>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" deviceset="+5V" device=""/>
 <part name="J1" library="SparkFun-Connectors" deviceset="AVR_SPI_PRG_6" device="NS"/>
-<part name="Y1" library="SparkFun-FreqCtrl" deviceset="CRYSTAL" device="SMD"/>
+<part name="Y1" library="SparkFun-FreqCtrl" deviceset="CRYSTAL" device="HC49UV"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
@@ -11498,6 +11498,7 @@ grid 2.54 mm</description>
 <part name="H3" library="holes" deviceset="MOUNT-PAD-ROUND" device="3.2"/>
 <part name="R13" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>
 <part name="P+13" library="supply1" deviceset="+5V" device=""/>
+<part name="H4" library="holes" deviceset="MOUNT-PAD-ROUND" device="3.2"/>
 </parts>
 <sheets>
 <sheet>
@@ -11609,6 +11610,7 @@ grid 2.54 mm</description>
 <instance part="H3" gate="G$1" x="129.54" y="15.24"/>
 <instance part="R13" gate="G$1" x="20.32" y="81.28"/>
 <instance part="P+13" gate="1" x="12.7" y="86.36"/>
+<instance part="H4" gate="G$1" x="119.38" y="15.24"/>
 </instances>
 <busses>
 </busses>
