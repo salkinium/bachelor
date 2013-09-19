@@ -3200,10 +3200,10 @@ Source: OSRAM - LRTB_G6TG.pdf</description>
 <rectangle x1="-0.375" y1="-0.125" x2="-0.125" y2="0.125" layer="22"/>
 <rectangle x1="0.125" y1="-0.425" x2="0.375" y2="-0.175" layer="22"/>
 <rectangle x1="0.125" y1="0.175" x2="0.375" y2="0.425" layer="22"/>
-<wire x1="-2" y1="2" x2="2" y2="2" width="0" layer="46"/>
-<wire x1="2" y1="2" x2="2" y2="-2" width="0" layer="46"/>
-<wire x1="2" y1="-2" x2="-2" y2="-2" width="0" layer="46"/>
-<wire x1="-2" y1="-2" x2="-2" y2="2" width="0" layer="46"/>
+<wire x1="-2" y1="2" x2="2" y2="2" width="0" layer="20"/>
+<wire x1="2" y1="2" x2="2" y2="-2" width="0" layer="20"/>
+<wire x1="2" y1="-2" x2="-2" y2="-2" width="0" layer="20"/>
+<wire x1="-2" y1="-2" x2="-2" y2="2" width="0" layer="20"/>
 </package>
 <package name="LD260">
 <description>&lt;B&gt;LED&lt;/B&gt;&lt;p&gt;
@@ -4190,10 +4190,10 @@ Source: http://www.ledtronics.com/ds/smd-1206/dstr0094.PDF</description>
 <rectangle x1="1.15" y1="0.4" x2="1.6" y2="0.8" layer="51" rot="R180"/>
 <rectangle x1="1" y1="0.275" x2="1.175" y2="0.6" layer="51" rot="R180"/>
 <rectangle x1="-0.1" y1="-0.1" x2="0.1" y2="0.1" layer="21"/>
-<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0" layer="46"/>
-<wire x1="1.27" y1="1.27" x2="1.27" y2="-1.27" width="0" layer="46"/>
-<wire x1="1.27" y1="-1.27" x2="-1.27" y2="-1.27" width="0" layer="46"/>
-<wire x1="-1.27" y1="-1.27" x2="-1.27" y2="1.27" width="0" layer="46"/>
+<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0" layer="20"/>
+<wire x1="1.27" y1="1.27" x2="1.27" y2="-1.27" width="0" layer="20"/>
+<wire x1="1.27" y1="-1.27" x2="-1.27" y2="-1.27" width="0" layer="20"/>
+<wire x1="-1.27" y1="-1.27" x2="-1.27" y2="1.27" width="0" layer="20"/>
 </package>
 <package name="SML0603">
 <description>&lt;b&gt;SML0603-XXX (HIGH INTENSITY) LED&lt;/b&gt;&lt;p&gt;

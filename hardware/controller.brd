@@ -436,10 +436,10 @@ Source: OSRAM - LRTB_G6TG.pdf</description>
 <rectangle x1="-0.375" y1="-0.125" x2="-0.125" y2="0.125" layer="22"/>
 <rectangle x1="0.125" y1="-0.425" x2="0.375" y2="-0.175" layer="22"/>
 <rectangle x1="0.125" y1="0.175" x2="0.375" y2="0.425" layer="22"/>
-<wire x1="-2" y1="2" x2="2" y2="2" width="0" layer="46"/>
-<wire x1="2" y1="2" x2="2" y2="-2" width="0" layer="46"/>
-<wire x1="2" y1="-2" x2="-2" y2="-2" width="0" layer="46"/>
-<wire x1="-2" y1="-2" x2="-2" y2="2" width="0" layer="46"/>
+<wire x1="-2" y1="2" x2="2" y2="2" width="0" layer="20"/>
+<wire x1="2" y1="2" x2="2" y2="-2" width="0" layer="20"/>
+<wire x1="2" y1="-2" x2="-2" y2="-2" width="0" layer="20"/>
+<wire x1="-2" y1="-2" x2="-2" y2="2" width="0" layer="20"/>
 </package>
 <package name="SML1206">
 <description>&lt;b&gt;SML10XXKH-TR (HIGH INTENSITY) LED&lt;/b&gt;&lt;p&gt;
@@ -472,10 +472,10 @@ Source: http://www.ledtronics.com/ds/smd-1206/dstr0094.PDF</description>
 <rectangle x1="1.15" y1="0.4" x2="1.6" y2="0.8" layer="51" rot="R180"/>
 <rectangle x1="1" y1="0.275" x2="1.175" y2="0.6" layer="51" rot="R180"/>
 <rectangle x1="-0.1" y1="-0.1" x2="0.1" y2="0.1" layer="21"/>
-<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0" layer="46"/>
-<wire x1="1.27" y1="1.27" x2="1.27" y2="-1.27" width="0" layer="46"/>
-<wire x1="1.27" y1="-1.27" x2="-1.27" y2="-1.27" width="0" layer="46"/>
-<wire x1="-1.27" y1="-1.27" x2="-1.27" y2="1.27" width="0" layer="46"/>
+<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0" layer="20"/>
+<wire x1="1.27" y1="1.27" x2="1.27" y2="-1.27" width="0" layer="20"/>
+<wire x1="1.27" y1="-1.27" x2="-1.27" y2="-1.27" width="0" layer="20"/>
+<wire x1="-1.27" y1="-1.27" x2="-1.27" y2="1.27" width="0" layer="20"/>
 </package>
 <package name="VSSOP8">
 <smd name="P$1" x="-1.905" y="-3.45" dx="1.5" dy="0.55" layer="1" rot="R90"/>
@@ -2381,6 +2381,10 @@ design rules under a new name.</description>
 <vertex x="84" y="0"/>
 <vertex x="16.9" y="0"/>
 </polygon>
+<wire x1="32.2" y1="2.2" x2="83.8" y2="2.2" width="3.81" layer="16"/>
+<wire x1="30" y1="4" x2="54" y2="4" width="3.81" layer="16"/>
+<wire x1="54" y1="4" x2="54" y2="3" width="3.81" layer="16"/>
+<wire x1="32" y1="3.19" x2="32.2" y2="2.2" width="0" layer="19" extent="16-16"/>
 </signal>
 <signal name="+3V3">
 <contactref element="J8" pad="1"/>
