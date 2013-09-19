@@ -40,7 +40,7 @@ int
 main(void)
 {
 	PsOn::setOutput(xpcc::Gpio::HIGH);
-	PwrOk::setInput();
+	PwrOk::set();
 
 	Heater::setOutput(xpcc::Gpio::LOW);
 	HeaterFan::setOutput(xpcc::Gpio::LOW);
@@ -62,7 +62,7 @@ main(void)
 
 	while (1)
 	{
-
+		heartbeat.run();
 	}
 
 	return 0;

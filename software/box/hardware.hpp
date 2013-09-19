@@ -11,6 +11,7 @@
 #define THESIS_HARDWARE
 
 #include <xpcc/architecture/platform.hpp>
+#include "leds.hpp"
 
 using namespace xpcc::atmega;
 
@@ -44,13 +45,25 @@ typedef GpioOutputB5 WhiteRight;
 
 // Power
 typedef GpioOutputB0 PsOn;
-typedef GpioInputD7 PwrOk;
+typedef GpioOpenDrain<GpioD7> PwrOk;
 
 // Control
 typedef xpcc::GpioInverted<GpioC0> Heater;
 typedef xpcc::GpioInverted<GpioC2> HeaterFan;
 typedef xpcc::GpioInverted<GpioC1> Cooler;
 typedef xpcc::GpioInverted<GpioC3> CoolerFan;
+
+// Leds
+WhiteLedLeft whiteLeft;
+WhiteLedRight whiteRight;
+xpcc::ui::DoubleIndicator heartbeatLed(&whiteLeft);
+Heartbeat heartbeat;
+
+RedLed red;
+GreenLed green;
+BlueLed blue;
+
+xpcc::ui::RgbLed rgb(&red, &green, &blue);
 
 // COMMUNICATION ##############################################################
 // Message

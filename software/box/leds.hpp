@@ -11,7 +11,8 @@
 #ifndef LEDS_HPP
 #define LEDS_HPP
 
-#include "hardware.hpp"
+#include <xpcc/architecture/platform.hpp>
+#include <xpcc/processing.hpp>
 #include <xpcc/ui/led.hpp>
 
 void
@@ -87,6 +88,84 @@ public:
 	{
 	}
 };
+
+class RedLed : virtual public xpcc::ui::Led
+{
+	xpcc::accessor::Flash<uint16_t> table;
+
+	virtual void
+	setValue(uint16_t brightness)
+	{
+		OCR1B = 1023-table[brightness];
+	}
+
+public:
+	RedLed(const uint16_t* table=xpcc::ui::table10_256, std::size_t const tableSize=256)
+	:	Led(tableSize), table(table)
+	{
+	}
+};
+
+class GreenLed : virtual public xpcc::ui::Led
+{
+	xpcc::accessor::Flash<uint8_t> table;
+
+	virtual void
+	setValue(uint16_t brightness)
+	{
+		OCR2B = 255-table[brightness];
+	}
+
+public:
+	GreenLed(const uint8_t* table=xpcc::ui::table8_256, std::size_t const tableSize=256)
+	:	Led(tableSize), table(table)
+	{
+	}
+};
+
+class BlueLed : virtual public xpcc::ui::Led
+{
+	xpcc::accessor::Flash<uint16_t> table;
+
+	virtual void
+	setValue(uint16_t brightness)
+	{
+		OCR1A = 1023-table[brightness];
+	}
+
+public:
+	BlueLed(const uint16_t* table=xpcc::ui::table10_256, std::size_t const tableSize=256)
+	:	Led(tableSize), table(table)
+	{
+	}
+};
+
+extern xpcc::ui::DoubleIndicator heartbeatLed;
+
+class Heartbeat
+{
+	xpcc::PeriodicTimer<> timer;
+	uint16_t counter;
+
+public:
+	Heartbeat()
+	:	timer(100), counter(0)
+	{
+		heartbeatLed.start();
+	}
+
+	void
+	run()
+	{
+		counter++;
+		if (timer.isExpired())
+		{
+			heartbeatLed.setPeriod(counter);
+			counter = 0;
+		}
+	}
+};
+
 
 
 #endif // LEDS_HPP
