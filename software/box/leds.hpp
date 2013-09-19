@@ -14,16 +14,16 @@
 #include <xpcc/architecture/platform.hpp>
 #include <xpcc/processing.hpp>
 #include <xpcc/ui/led.hpp>
+#include <xpcc/debug/logger.hpp>
 
 void
-initializeTimers()
+initializeLeds()
 {
 	// Timer0 is used to fade the two white LEDs
-	// Fast PWM mode, interting mode for both A and B compare outputs
-	// Set OC0X on Compare Match, clear OC0X at Bottom
+	// Fast PWM mode, non-inverting mode for both A and B compare outputs
+	// Clear OC0X on Compare Match, set OC0X at Bottom
 	TCCR0A = (1 << WGM01) | (1 << WGM00) | \
-			(1 << COM0A1) | (1 << COM0A0) | \
-			(1 << COM0B1) | (1 << COM0B0);
+			(1 << COM0A1) | (1 << COM0B1);
 	// 14745.6kHz / 64 / 256 = 0.9kHz
 	// Prescaler 64, enable Timer0
 	TCCR0B = (1 << CS01) | (1 << CS00);
@@ -31,26 +31,24 @@ initializeTimers()
 	TIMSK0 = 0;
 
 	// Timer1 is used to fade the red and blue Leds at 10bit resolution
-	// Fast PWM mode, interting mode for A and B compare outputs
-	// Set OC0X on Compare Match, clear OC0X at Bottom
+	// Fast PWM mode, non-inverting mode for both A and B compare outputs
+	// Clear OC0X on Compare Match, set OC0X at Bottom
 	TCCR1A = (1 << WGM11) | (1 << WGM10) | \
-			(1 << COM1A1) | (1 << COM1A0) | \
-			(1 << COM1B1) | (1 << COM1B0);
+			(1 << COM1A1) | (1 << COM1B1);
 	// 14745.6kHz / 8 / 1024 = 1.8kHz
 	// Prescaler 8, enable Timer1
-	TCCR1B = (1 << WGM11) | (1 << CS12);
+	TCCR1B = (1 << WGM12) | (1 << CS11);
 	// No Interrupt required
 	TIMSK1 = 0;
 
 	// Timer2 is used to fade the green Led and drive xpcc::Clock
-	// Fast PWM mode, interting mode for A compare outputs
-	// Set OC0X on Compare Match, clear OC0X at Bottom
-	TCCR2A = (1 << WGM01) | (1 << WGM00) | \
-			(1 << COM0A1) | (1 << COM0A0) | \
-			(1 << COM0B1) | (1 << COM0B0);
+	// Fast PWM mode, non-inverting mode for B compare outputs
+	// Clear OC0X on Compare Match, set OC0X at Bottom
+	TCCR2A = (1 << WGM21) | (1 << WGM20) | \
+			(1 << COM2B1);
 	// 14745.6kHz / 256 / 256 = 0.225kHz ~ 4.444444ms
 	// Prescaler 256, enable Timer2
-	TCCR2B = (1 << CS22);
+	TCCR2B = (1 << CS22) | (1 << CS21);
 	// Enable Overflow Interrupt for xpcc::Clock
 	TIMSK2 = (1 << TOIE2);
 }
@@ -62,7 +60,7 @@ class WhiteLedLeft : virtual public xpcc::ui::Led
 	virtual void
 	setValue(uint16_t brightness)
 	{
-		OCR0A = 255-table[brightness];
+		OCR0A = 255 - table[brightness];
 	}
 
 public:
@@ -79,7 +77,7 @@ class WhiteLedRight : virtual public xpcc::ui::Led
 	virtual void
 	setValue(uint16_t brightness)
 	{
-		OCR0B = 255-table[brightness];
+		OCR0B = 255 - table[brightness];
 	}
 
 public:
@@ -96,7 +94,7 @@ class RedLed : virtual public xpcc::ui::Led
 	virtual void
 	setValue(uint16_t brightness)
 	{
-		OCR1B = 1023-table[brightness];
+		OCR1B = 1023 - table[brightness];
 	}
 
 public:
@@ -113,7 +111,7 @@ class GreenLed : virtual public xpcc::ui::Led
 	virtual void
 	setValue(uint16_t brightness)
 	{
-		OCR2B = 255-table[brightness];
+		OCR2B = 255 - table[brightness];
 	}
 
 public:
@@ -130,7 +128,7 @@ class BlueLed : virtual public xpcc::ui::Led
 	virtual void
 	setValue(uint16_t brightness)
 	{
-		OCR1A = 1023-table[brightness];
+		OCR1A = 1023 - table[brightness];
 	}
 
 public:
@@ -157,10 +155,12 @@ public:
 	void
 	run()
 	{
+		heartbeatLed.run();
+
 		counter++;
 		if (timer.isExpired())
 		{
-			heartbeatLed.setPeriod(counter);
+//			heartbeatLed.setPeriod(counter);
 			counter = 0;
 		}
 	}
