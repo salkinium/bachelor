@@ -39,13 +39,23 @@ ISR(TIMER2_OVF_vect)
 int
 main(void)
 {
+	// set the power pins
 	PsOn::setOutput(xpcc::Gpio::HIGH);
-	PwrOk::set();
+	PwrOk::setInput();
 
+	// set the temperature pins
 	Heater::setOutput(xpcc::Gpio::LOW);
 	HeaterFan::setOutput(xpcc::Gpio::LOW);
 	Cooler::setOutput(xpcc::Gpio::LOW);
 	CoolerFan::setOutput(xpcc::Gpio::LOW);
+
+	// set the led pins
+	initializeLeds();
+	RedLedPin::setOutput();
+	GreenLedPin::setOutput();
+	BlueLedPin::setOutput();
+	WhiteLeftLedPin::setOutput();
+	WhiteRightLedPin::setOutput();
 
 	GpioC5::connect(Twi::Scl);
 	GpioC4::connect(Twi::Sda);
@@ -55,14 +65,48 @@ main(void)
 	GpioD1::connect(Uart::Tx);
 	Uart::initialize<115200>();
 
-	initializeTimers();
-
-	XPCC_LOG_INFO << "\n\nRESTART\n\n";
 	xpcc::atmega::enableInterrupts();
+	XPCC_LOG_INFO << "\n\nRESTART\n\n";
 
+	PsOn::reset();
+
+	uint8_t hello;
 	while (1)
 	{
+		rgb.run();
+		whiteLeft.run();
 		heartbeat.run();
+
+		if (Uart::read(hello))
+		{
+			switch (hello)
+			{
+				case 'P':
+					PsOn::reset();
+					XPCC_LOG_DEBUG << "P on" << xpcc::endl;
+					break;
+				case 'p':
+					PsOn::set();
+					XPCC_LOG_DEBUG << "P off" << xpcc::endl;
+					break;
+				case 'F':
+					HeaterFan::set();
+					XPCC_LOG_DEBUG << "HF on" << xpcc::endl;
+					break;
+				case 'f':
+					HeaterFan::reset();
+					XPCC_LOG_DEBUG << "HF off" << xpcc::endl;
+					break;
+				case 'H':
+					Heater::set();
+					XPCC_LOG_DEBUG << "H on" << xpcc::endl;
+					break;
+				case 'h':
+					Heater::reset();
+					XPCC_LOG_DEBUG << "H off" << xpcc::endl;
+					break;
+			}
+		}
 	}
 
 	return 0;

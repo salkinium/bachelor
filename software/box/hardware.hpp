@@ -20,10 +20,10 @@ using namespace xpcc::atmega;
 //                    +-v-+
 //     (!RESET) PC6  1|   |28  PC5 (SCL)
 //        (RXD) PD0  2|   |27  PC4 (SDA)
-//        (TXD) PD1  3|   |26  PC3 (COLD_FAN)
-//              PD2  4|   |25  PC2 (HEAT_FAN)
-// (GREEN,OC2B) PD3  5|   |24  PC1 (COLD)
-//              PD4  6|   |23  PC0 (HEAT)
+//        (TXD) PD1  3|   |26  PC3 (HEAT_FAN)
+//              PD2  4|   |25  PC2 (COLD_FAN)
+// (GREEN,OC2B) PD3  5|   |24  PC1 (HEAT)
+//              PD4  6|   |23  PC0 (COLD)
 //              VCC  7|   |22  GND
 //              GND  8|   |21  AREF
 //      (XTAL1) PB6  9|   |20  AVCC
@@ -35,33 +35,34 @@ using namespace xpcc::atmega;
 //                    +---+
 
 // Color
-typedef GpioOutputB2 Red;
-typedef GpioOutputD3 Green;
-typedef GpioOutputB1 Blue;
+typedef GpioOutputB2 RedLedPin;
+typedef GpioOutputD3 GreenLedPin;
+typedef GpioOutputB1 BlueLedPin;
 
 // Signal
-typedef GpioOutputD6 WhiteLeft;
-typedef GpioOutputB5 WhiteRight;
+typedef GpioOutputD6 WhiteLeftLedPin;
+typedef GpioOutputD5 WhiteRightLedPin;
 
 // Power
+//typedef GpioOpenDrain<GpioB0> PsOn;
 typedef GpioOutputB0 PsOn;
-typedef GpioOpenDrain<GpioD7> PwrOk;
+typedef GpioInputD7 PwrOk;
 
 // Control
-typedef xpcc::GpioInverted<GpioC0> Heater;
-typedef xpcc::GpioInverted<GpioC2> HeaterFan;
-typedef xpcc::GpioInverted<GpioC1> Cooler;
-typedef xpcc::GpioInverted<GpioC3> CoolerFan;
+typedef GpioOutputC1 Heater;
+typedef GpioOutputC3 HeaterFan;
+typedef GpioOutputC0 Cooler;
+typedef GpioOutputC2 CoolerFan;
 
 // Leds
 WhiteLedLeft whiteLeft;
 WhiteLedRight whiteRight;
-xpcc::ui::DoubleIndicator heartbeatLed(&whiteLeft);
-Heartbeat heartbeat;
-
 RedLed red;
 GreenLed green;
 BlueLed blue;
+
+xpcc::ui::DoubleIndicator heartbeatLed(&whiteRight, 2000);
+Heartbeat heartbeat;
 
 xpcc::ui::RgbLed rgb(&red, &green, &blue);
 
@@ -93,6 +94,6 @@ xpcc::log::Logger xpcc::log::warning(logger);
 xpcc::log::Logger xpcc::log::error(logger);
 
 #undef	XPCC_LOG_LEVEL
-#define	XPCC_LOG_LEVEL xpcc::log::DISABLED
+#define	XPCC_LOG_LEVEL xpcc::log::DEBUG
 
 #endif // THESIS_HARDWARE
