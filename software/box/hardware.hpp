@@ -11,7 +11,6 @@
 #define THESIS_HARDWARE
 
 #include <xpcc/architecture/platform.hpp>
-#include "leds.hpp"
 
 using namespace xpcc::atmega;
 
@@ -49,22 +48,28 @@ typedef GpioOutputB0 PsOn;
 typedef GpioInputD7 PwrOk;
 
 // Control
-typedef GpioOutputC1 Heater;
-typedef GpioOutputC3 HeaterFan;
-typedef GpioOutputC0 Cooler;
-typedef GpioOutputC2 CoolerFan;
+typedef GpioOutputC1 HeaterPin;
+typedef GpioOutputC3 HeaterFanPin;
+typedef GpioOutputC0 CoolerPin;
+typedef GpioOutputC2 CoolerFanPin;
 
 // Leds
+#include "leds.hpp"
 WhiteLedLeft whiteLeft;
 WhiteLedRight whiteRight;
 RedLed red;
 GreenLed green;
 BlueLed blue;
 
-xpcc::ui::DoubleIndicator heartbeatLed(&whiteRight, 2000);
+xpcc::ui::DoubleIndicator heartbeatLed(green, 2000);
 Heartbeat heartbeat;
 
-xpcc::ui::RgbLed rgb(&red, &green, &blue);
+xpcc::ui::Led dummyLed;
+xpcc::ui::RgbLed rgb(red, dummyLed, blue);
+
+#include "tasks/task_software_pwm.hpp"
+task::SoftwarePwm<HeaterPin, 333> heater(whiteLeft);
+task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteRight);
 
 // COMMUNICATION ##############################################################
 // Message
@@ -75,7 +80,7 @@ struct SensorData
 }
 sensorMessage __attribute__((packed));
 
-// TMP102 driver
+// TMP102 and TMP175 drivers
 #include <xpcc/driver/temperature/tmp102.hpp>
 typedef I2cMaster Twi;
 xpcc::Tmp102<Twi> temperature1(sensorMessage.tempData1, 0x48);

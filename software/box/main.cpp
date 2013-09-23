@@ -2,7 +2,7 @@
 /* Copyright (c) 2013, Niklas Hauser
 * All Rights Reserved.
 *
-* The file is part of the my thesis and is released under the 3-clause BSD
+* The file is part of my bachelor thesis and is released under the 3-clause BSD
 * license. See the file `LICENSE` for the full license governing this code.
 */
 // ----------------------------------------------------------------------------
@@ -11,7 +11,6 @@
 #include <xpcc/processing.hpp>
 
 #include "hardware.hpp"
-#include "leds.hpp"
 
 using namespace xpcc::atmega;
 
@@ -44,10 +43,10 @@ main(void)
 	PwrOk::setInput();
 
 	// set the temperature pins
-	Heater::setOutput(xpcc::Gpio::LOW);
-	HeaterFan::setOutput(xpcc::Gpio::LOW);
-	Cooler::setOutput(xpcc::Gpio::LOW);
-	CoolerFan::setOutput(xpcc::Gpio::LOW);
+	HeaterPin::setOutput(xpcc::Gpio::LOW);
+	HeaterFanPin::setOutput(xpcc::Gpio::LOW);
+	CoolerPin::setOutput(xpcc::Gpio::LOW);
+	CoolerFanPin::setOutput(xpcc::Gpio::LOW);
 
 	// set the led pins
 	initializeLeds();
@@ -57,6 +56,7 @@ main(void)
 	WhiteLeftLedPin::setOutput();
 	WhiteRightLedPin::setOutput();
 
+	// connect the peripherals
 	GpioC5::connect(Twi::Scl);
 	GpioC4::connect(Twi::Sda);
 	Twi::initialize<Twi::DataRate::Fast>();
@@ -70,16 +70,19 @@ main(void)
 
 	PsOn::reset();
 
-	uint8_t hello;
+	uint8_t uartRead;
+	uint8_t fanPower(0);
+	uint8_t heatPower(0);
 	while (1)
 	{
 		rgb.run();
-		whiteLeft.run();
 		heartbeat.run();
+		heater.update();
+		heaterFan.update();
 
-		if (Uart::read(hello))
+		if (Uart::read(uartRead))
 		{
-			switch (hello)
+			switch (uartRead)
 			{
 				case 'P':
 					PsOn::reset();
@@ -90,20 +93,24 @@ main(void)
 					XPCC_LOG_DEBUG << "P off" << xpcc::endl;
 					break;
 				case 'F':
-					HeaterFan::set();
-					XPCC_LOG_DEBUG << "HF on" << xpcc::endl;
+					if (fanPower <= 90) fanPower += 10;
+					heaterFan.setPower(fanPower);
+					XPCC_LOG_DEBUG << "Fan++: " << fanPower << xpcc::endl;
 					break;
 				case 'f':
-					HeaterFan::reset();
-					XPCC_LOG_DEBUG << "HF off" << xpcc::endl;
+					if (fanPower >= 10) fanPower -= 10;
+					heaterFan.setPower(fanPower);
+					XPCC_LOG_DEBUG << "Fan--: " << fanPower << xpcc::endl;
 					break;
 				case 'H':
-					Heater::set();
-					XPCC_LOG_DEBUG << "H on" << xpcc::endl;
+					if (heatPower <= 90) heatPower += 10;
+					heater.setPower(heatPower);
+					XPCC_LOG_DEBUG << "Heat++: " << heatPower << xpcc::endl;
 					break;
 				case 'h':
-					Heater::reset();
-					XPCC_LOG_DEBUG << "H off" << xpcc::endl;
+					if (heatPower >= 10) heatPower -= 10;
+					heater.setPower(heatPower);
+					XPCC_LOG_DEBUG << "Heat--: " << heatPower << xpcc::endl;
 					break;
 			}
 		}
