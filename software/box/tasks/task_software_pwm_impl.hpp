@@ -23,8 +23,6 @@ task::SoftwarePwm<Pin, Period>::setPower(uint8_t power)
 	if (power > 99)
 		power = 99;
 	percent = power;
-	float ledBrightness = static_cast<float>(power) * 2.56f;
-	led.setBrightness(static_cast<uint16_t>(ledBrightness));
 	float timeout = static_cast<float>(power) * Period / 100.f;
 	setTime = static_cast<uint16_t>(timeout);
 }
@@ -54,12 +52,14 @@ task::SoftwarePwm<Pin, Period>::run()
 	{
 		if (percent > 0) {
 			Pin::set();
+			led.setBrightness(150);
 		}
 
 		if (percent < 99) {
 			PT_WAIT_UNTIL(setTimeout.isExpired() || periodTimer.isExpired());
 
 			Pin::reset();
+			led.setBrightness(0);
 		}
 
 		PT_WAIT_UNTIL(periodTimer.isExpired());
