@@ -59,7 +59,7 @@ main(void)
 	// connect the peripherals
 	GpioC5::connect(Twi::Scl);
 	GpioC4::connect(Twi::Sda);
-	Twi::initialize<Twi::DataRate::Fast>();
+	Twi::initialize<Twi::DataRate::Standard>();
 
 	GpioD0::connect(Uart::Rx);
 	GpioD1::connect(Uart::Tx);
@@ -69,6 +69,20 @@ main(void)
 	XPCC_LOG_INFO << "\n\nRESTART\n\n";
 
 	PsOn::reset();
+	xpcc::Timeout<> configTimeout(1000);
+	bool success(true);
+
+	while(!(success = temperatureOnBoard.configure()) && !configTimeout.isExpired())
+		;
+	if (!success) {
+		XPCC_LOG_ERROR << "On Board Sensor config timed out!" << xpcc::endl;
+	}
+	configTimeout.restart(1000);
+	while(!(success = temperature1.configure()) && !configTimeout.isExpired())
+		;
+	if (!success) {
+		XPCC_LOG_ERROR << "Temp1 Sensor config timed out!" << xpcc::endl;
+	}
 
 	uint8_t uartRead;
 	uint8_t fanPower(0);
@@ -76,9 +90,37 @@ main(void)
 	while (1)
 	{
 		rgb.run();
-		heartbeat.run();
 		heater.update();
 		heaterFan.update();
+
+		temperatureOnBoard.update();
+		temperature1.update();
+
+		if (temperatureTimer.isExpired())
+		{
+			float temp = temperatureOnBoard.getTemperature();
+			XPCC_LOG_INFO << "onBoard: " << static_cast<uint8_t>(temp) << ".";
+			temp = temp - static_cast<uint8_t>(temp);
+			temp *= 100;
+			XPCC_LOG_INFO << static_cast<uint8_t>(temp) << " C ";
+
+			temp = temperature1.getTemperature();
+			XPCC_LOG_INFO << "temp1: " << static_cast<uint8_t>(temp) << ".";
+			temp = temp - static_cast<uint8_t>(temp);
+			temp *= 100;
+			XPCC_LOG_INFO << static_cast<uint8_t>(temp) << " C" << xpcc::endl;
+
+			temperatureOnBoard.readTemperature();
+			temperature1.readTemperature();
+
+			temp = temperature1.getTemperature();
+			temp -= 25;
+			temp *= 50;
+			uint16_t rawRed = temp < 0 ? 0 : temp;
+			uint8_t red = rawRed > 255 ? 255 : rawRed;
+			XPCC_LOG_DEBUG << "red=" << red << xpcc::endl;
+			rgb.fadeTo(480, red, 0, 255-red);
+		}
 
 		if (Uart::read(uartRead))
 		{

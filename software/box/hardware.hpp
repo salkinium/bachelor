@@ -72,6 +72,7 @@ task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteLedRight);
 // Message
 struct SensorData
 {
+	uint8_t tempData0[2];
 	uint8_t tempData1[2];
 	uint8_t tempData2[2];
 }
@@ -79,10 +80,12 @@ sensorMessage __attribute__((packed));
 
 // TMP102 and TMP175 drivers
 #include <xpcc/driver/temperature/tmp102.hpp>
+#include <xpcc/driver/temperature/tmp175.hpp>
 typedef I2cMaster Twi;
 xpcc::Tmp102<Twi> temperature1(sensorMessage.tempData1, 0x48);
-xpcc::Tmp102<Twi> temperature2(sensorMessage.tempData2, 0x49);
-xpcc::PeriodicTimer<> temperatureTimer(250);
+//xpcc::Tmp102<Twi> temperature2(sensorMessage.tempData2, 0x49);
+xpcc::Tmp175<Twi> temperatureOnBoard(sensorMessage.tempData0, 0b1001111);
+xpcc::PeriodicTimer<> temperatureTimer(500);
 
 // Serial debug
 #include <xpcc/io/iodevice_wrapper.hpp>
