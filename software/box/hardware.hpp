@@ -55,21 +55,18 @@ typedef GpioOutputC2 CoolerFanPin;
 
 // Leds
 #include "leds.hpp"
-WhiteLedLeft whiteLeft;
-WhiteLedRight whiteRight;
-RedLed red;
-GreenLed green;
-BlueLed blue;
+WhiteLedLeft whiteLedLeft;
+WhiteLedRight whiteLedRight;
+RedLed redLed;
+GreenLed greenLed;
+BlueLed blueLed;
 
-xpcc::ui::DoubleIndicator heartbeatLed(green, 2000);
-Heartbeat heartbeat;
+xpcc::ui::RgbLed rgb(redLed, greenLed, blueLed);
 
-xpcc::ui::Led dummyLed;
-xpcc::ui::RgbLed rgb(red, dummyLed, blue);
-
+// TASKS ######################################################################
 #include "tasks/task_software_pwm.hpp"
-task::SoftwarePwm<HeaterPin, 333> heater(whiteLeft);
-task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteRight);
+task::SoftwarePwm<HeaterPin, 333> heater(whiteLedLeft);
+task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteLedRight);
 
 // COMMUNICATION ##############################################################
 // Message
