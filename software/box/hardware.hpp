@@ -101,9 +101,12 @@ xpcc::log::Logger xpcc::log::error(logger);
 // TASKS ######################################################################
 #include "tasks/task_software_pwm.hpp"
 task::SoftwarePwm<HeaterPin, 333> heater(whiteLedLeft);
-task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteLedRight);
+task::SoftwarePwm<HeaterFanPin, 33> heaterFan(whiteLedRight);
 
 #include "tasks/task_temperature.hpp"
 task::Temperature temperature;
+
+#include "tasks/task_temperature_control.hpp"
+task::TemperatureControl temperatureControl;
 
 #endif // THESIS_HARDWARE

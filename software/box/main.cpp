@@ -80,30 +80,17 @@ main(void)
 	while (1)
 	{
 		rgbLed.run();
-		heater.run();
-		heaterFan.run();
 		temperature.run();
+		temperatureControl.run();
 
 		if (temperatureTimer.isExpired())
 		{
-			float temp = temperature.getTemperature(0);
-			XPCC_LOG_INFO << "onBoard: " << static_cast<uint8_t>(temp) << ".";
-			temp = temp - static_cast<uint8_t>(temp);
-			temp *= 100;
-			XPCC_LOG_INFO << static_cast<uint8_t>(temp) << " C ";
-
-			temp = temperature.getTemperature(1);
-			XPCC_LOG_INFO << "temp1: " << static_cast<uint8_t>(temp) << ".";
-			temp = temp - static_cast<uint8_t>(temp);
-			temp *= 100;
-			XPCC_LOG_INFO << static_cast<uint8_t>(temp) << " C" << xpcc::endl;
-
-			temp = temperature.getTemperature(1);
-			temp -= 25;
-			temp *= 25;
+			float temp = temperature.getTemperature(1);
+			temp -= 20;
+			temp *= 2.6;
 			uint16_t raw = temp < 0 ? 0 : temp;
 			uint8_t value = raw > 180 ? 180 : raw;
-			rgbLed.fadeTo(480, xpcc::color::Hsv(190-value, 255, 255));
+			rgbLed.fadeTo(480, xpcc::color::Hsv(180-value, 255, 255));
 		}
 
 		if (Uart::read(uartRead))

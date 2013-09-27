@@ -14,7 +14,7 @@
 #define	XPCC_LOG_LEVEL xpcc::log::ERROR
 
 task::Temperature::Temperature()
-:	readTimer(500), temperatures{0,0,0,0,0}
+:	readTimer(250), temperatures{0,0,0,0,0}
 {
 }
 
