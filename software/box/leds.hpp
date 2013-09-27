@@ -22,7 +22,7 @@ initializeLeds()
 	// Timer0 is used to fade the two white LEDs
 	// Fast PWM mode, non-inverting mode for both A and B compare outputs
 	// Clear OC0X on Compare Match, set OC0X at Bottom
-	TCCR0A = (1 << WGM01) | (1 << WGM00) | \
+	TCCR0A = (1 << WGM01) | (1 << WGM00) |
 			(1 << COM0A1) | (1 << COM0B1);
 	// 14745.6kHz / 64 / 256 = 0.9kHz
 	// Prescaler 64, enable Timer0
@@ -33,7 +33,7 @@ initializeLeds()
 	// Timer1 is used to fade the red and blue Leds at 10bit resolution
 	// Fast PWM mode, non-inverting mode for both A and B compare outputs
 	// Clear OC0X on Compare Match, set OC0X at Bottom
-	TCCR1A = (1 << WGM11) | (1 << WGM10) | \
+	TCCR1A = (1 << WGM11) | (1 << WGM10) |
 			(1 << COM1A1) | (1 << COM1B1);
 	// 14745.6kHz / 8 / 1024 = 1.8kHz
 	// Prescaler 8, enable Timer1
@@ -44,11 +44,11 @@ initializeLeds()
 	// Timer2 is used to fade the green Led and drive xpcc::Clock
 	// Fast PWM mode, non-inverting mode for B compare outputs
 	// Clear OC0X on Compare Match, set OC0X at Bottom
-	TCCR2A = (1 << WGM21) | (1 << WGM20) | \
+	TCCR2A = (1 << WGM21) | (1 << WGM20) |
 			(1 << COM2B1);
-	// 14745.6kHz / 256 / 256 = 0.225kHz ~ 4.444444ms
-	// Prescaler 256, enable Timer2
-	TCCR2B = (1 << CS22) | (1 << CS21);
+	// 14745.6kHz / 64 / 256 = 0.9kHz ~ 1.1111ms
+	// Prescaler 64, enable Timer2
+	TCCR2B = (1 << CS22);
 	// Enable Overflow Interrupt for xpcc::Clock
 	TIMSK2 = (1 << TOIE2);
 }
