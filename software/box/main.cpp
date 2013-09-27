@@ -63,7 +63,7 @@ main(void)
 
 	GpioD0::connect(Uart::Rx);
 	GpioD1::connect(Uart::Tx);
-	Uart::initialize<115200>();
+	Uart::initialize<Uart::B115200>();
 
 	xpcc::atmega::enableInterrupts();
 	XPCC_LOG_INFO << "\n\nRESTART\n\n";
@@ -89,9 +89,9 @@ main(void)
 	uint8_t heatPower(0);
 	while (1)
 	{
-		rgb.run();
-		heater.update();
-		heaterFan.update();
+		rgbLed.run();
+		heater.run();
+		heaterFan.run();
 
 		temperatureOnBoard.update();
 		temperature1.update();

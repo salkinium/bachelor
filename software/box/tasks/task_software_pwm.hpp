@@ -28,13 +28,10 @@ public:
 	uint8_t
 	getPower();
 
-	void
-	update();
-
-private:
 	bool
 	run();
 
+private:
 	xpcc::ui::Led& led;
 	uint8_t percent;
 	uint16_t setTime;

@@ -61,12 +61,7 @@ RedLed redLed;
 GreenLed greenLed;
 BlueLed blueLed;
 
-xpcc::ui::RgbLed rgb(redLed, greenLed, blueLed);
-
-// TASKS ######################################################################
-#include "tasks/task_software_pwm.hpp"
-task::SoftwarePwm<HeaterPin, 333> heater(whiteLedLeft);
-task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteLedRight);
+xpcc::ui::RgbLed rgbLed(redLed, greenLed, blueLed);
 
 // COMMUNICATION ##############################################################
 // Message
@@ -100,5 +95,11 @@ xpcc::log::Logger xpcc::log::error(logger);
 
 #undef	XPCC_LOG_LEVEL
 #define	XPCC_LOG_LEVEL xpcc::log::DEBUG
+
+
+// TASKS ######################################################################
+#include "tasks/task_software_pwm.hpp"
+task::SoftwarePwm<HeaterPin, 333> heater(whiteLedLeft);
+task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteLedRight);
 
 #endif // THESIS_HARDWARE

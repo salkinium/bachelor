@@ -35,17 +35,11 @@ task::SoftwarePwm<Pin, Period>::getPower()
 }
 
 template< typename Pin, uint16_t Period >
-void
-task::SoftwarePwm<Pin, Period>::update()
-{
-	led.run();
-	this->run();
-}
-
-template< typename Pin, uint16_t Period >
 bool
 task::SoftwarePwm<Pin, Period>::run()
 {
+	led.run();
+
 	PT_BEGIN();
 
 	while(true)
