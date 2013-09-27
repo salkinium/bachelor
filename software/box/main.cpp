@@ -69,57 +69,41 @@ main(void)
 	XPCC_LOG_INFO << "\n\nRESTART\n\n";
 
 	PsOn::reset();
-	xpcc::Timeout<> configTimeout(1000);
-	bool success(true);
 
-	while(!(success = temperatureOnBoard.configure()) && !configTimeout.isExpired())
-		;
-	if (!success) {
-		XPCC_LOG_ERROR << "On Board Sensor config timed out!" << xpcc::endl;
-	}
-	configTimeout.restart(1000);
-	while(!(success = temperature1.configure()) && !configTimeout.isExpired())
-		;
-	if (!success) {
-		XPCC_LOG_ERROR << "Temp1 Sensor config timed out!" << xpcc::endl;
-	}
+	temperature.configureSensors();
 
 	uint8_t uartRead;
 	uint8_t fanPower(0);
 	uint8_t heatPower(0);
+	xpcc::PeriodicTimer<> temperatureTimer(500);
+
 	while (1)
 	{
 		rgbLed.run();
 		heater.run();
 		heaterFan.run();
-
-		temperatureOnBoard.update();
-		temperature1.update();
+		temperature.run();
 
 		if (temperatureTimer.isExpired())
 		{
-			float temp = temperatureOnBoard.getTemperature();
+			float temp = temperature.getTemperature(0);
 			XPCC_LOG_INFO << "onBoard: " << static_cast<uint8_t>(temp) << ".";
 			temp = temp - static_cast<uint8_t>(temp);
 			temp *= 100;
 			XPCC_LOG_INFO << static_cast<uint8_t>(temp) << " C ";
 
-			temp = temperature1.getTemperature();
+			temp = temperature.getTemperature(1);
 			XPCC_LOG_INFO << "temp1: " << static_cast<uint8_t>(temp) << ".";
 			temp = temp - static_cast<uint8_t>(temp);
 			temp *= 100;
 			XPCC_LOG_INFO << static_cast<uint8_t>(temp) << " C" << xpcc::endl;
 
-			temperatureOnBoard.readTemperature();
-			temperature1.readTemperature();
-
-			temp = temperature1.getTemperature();
+			temp = temperature.getTemperature(1);
 			temp -= 25;
-			temp *= 50;
-			uint16_t rawRed = temp < 0 ? 0 : temp;
-			uint8_t red = rawRed > 255 ? 255 : rawRed;
-			XPCC_LOG_DEBUG << "red=" << red << xpcc::endl;
-			rgb.fadeTo(480, red, 0, 255-red);
+			temp *= 25;
+			uint16_t raw = temp < 0 ? 0 : temp;
+			uint8_t value = raw > 180 ? 180 : raw;
+			rgbLed.fadeTo(480, xpcc::color::Hsv(190-value, 255, 255));
 		}
 
 		if (Uart::read(uartRead))

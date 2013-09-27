@@ -77,10 +77,11 @@ sensorMessage __attribute__((packed));
 #include <xpcc/driver/temperature/tmp102.hpp>
 #include <xpcc/driver/temperature/tmp175.hpp>
 typedef I2cMaster Twi;
-xpcc::Tmp102<Twi> temperature1(sensorMessage.tempData1, 0x48);
-//xpcc::Tmp102<Twi> temperature2(sensorMessage.tempData2, 0x49);
-xpcc::Tmp175<Twi> temperatureOnBoard(sensorMessage.tempData0, 0b1001111);
-xpcc::PeriodicTimer<> temperatureTimer(500);
+xpcc::Tmp175<Twi> sensor0(sensorMessage.tempData0, 0b1001111);
+xpcc::Tmp102<Twi> sensor1(sensorMessage.tempData1, 0x48);
+//xpcc::Tmp102<Twi> sensor2(sensorMessage.tempData2, 0x49);
+//xpcc::Tmp102<Twi> sensor3(sensorMessage.tempData3, 0x4A);
+//xpcc::Tmp102<Twi> sensor4(sensorMessage.tempData4, 0x4B);
 
 // Serial debug
 #include <xpcc/io/iodevice_wrapper.hpp>
@@ -101,5 +102,8 @@ xpcc::log::Logger xpcc::log::error(logger);
 #include "tasks/task_software_pwm.hpp"
 task::SoftwarePwm<HeaterPin, 333> heater(whiteLedLeft);
 task::SoftwarePwm<HeaterFanPin, 50> heaterFan(whiteLedRight);
+
+#include "tasks/task_temperature.hpp"
+task::Temperature temperature;
 
 #endif // THESIS_HARDWARE
