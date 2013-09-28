@@ -42,7 +42,7 @@ task::TemperatureControl::run()
 	{
 		PT_WAIT_UNTIL(timer.isExpired());
 
-		tPid.update(targetTemperature - getTemperature(), heater.getPower() == 0 && tPid.getLastError() < 1.5);
+		tPid.update(targetTemperature - getTemperature(), (heater.getPower() == 0 && tPid.getLastError() < 1.5));
 
 		// this scope is needed for the local variables
 		{

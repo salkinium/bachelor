@@ -73,16 +73,11 @@ main(void)
 
 	temperature.configureSensors();
 
-	temperatureControl.setTemperature(50);
-
 	uint8_t uartRead;
-	uint8_t fanPower(0);
-	uint8_t heatPower(0);
 	xpcc::PeriodicTimer<> temperatureTimer(500);
 	bool pidParam(false);
 	char buffer[20];
 	uint8_t index(0);
-	xpcc::Pid<float, 10>::Parameter param;
 
 	while (1)
 	{
@@ -129,26 +124,6 @@ main(void)
 					case 'p':
 						PsOn::set();
 						XPCC_LOG_DEBUG << "P off" << xpcc::endl;
-						break;
-					case 'F':
-						if (fanPower <= 90) fanPower += 10;
-						heaterFan.setPower(fanPower);
-						XPCC_LOG_DEBUG << "Fan++: " << fanPower << xpcc::endl;
-						break;
-					case 'f':
-						if (fanPower >= 10) fanPower -= 10;
-						heaterFan.setPower(fanPower);
-						XPCC_LOG_DEBUG << "Fan--: " << fanPower << xpcc::endl;
-						break;
-					case 'H':
-						if (heatPower <= 90) heatPower += 10;
-						heater.setPower(heatPower);
-						XPCC_LOG_DEBUG << "Heat++: " << heatPower << xpcc::endl;
-						break;
-					case 'h':
-						if (heatPower >= 10) heatPower -= 10;
-						heater.setPower(heatPower);
-						XPCC_LOG_DEBUG << "Heat--: " << heatPower << xpcc::endl;
 						break;
 					case 'C':
 						pidParam = true;
