@@ -69,6 +69,13 @@ task::Temperature::run()
 		{
 			sensor0.readTemperature();
 			sensor1.readTemperature();
+
+			float temp = getTemperature(1);
+			temp -= 20;
+			temp *= 2.65;
+			uint16_t raw = temp < 0 ? 0 : temp;
+			uint8_t value = raw > 180 ? 180 : raw;
+			rgbLed.fadeTo(250, xpcc::color::Hsv(180-value, 255, 255));
 		}
 
 		if (sensor0.isNewDataAvailable())

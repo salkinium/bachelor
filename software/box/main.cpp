@@ -74,7 +74,6 @@ main(void)
 	temperature.configureSensors();
 
 	uint8_t uartRead;
-	xpcc::PeriodicTimer<> temperatureTimer(500);
 	bool pidParam(false);
 	char buffer[20];
 	uint8_t index(0);
@@ -84,16 +83,6 @@ main(void)
 		rgbLed.run();
 		temperature.run();
 		temperatureControl.run();
-
-		if (temperatureTimer.isExpired())
-		{
-			float temp = temperature.getTemperature(1);
-			temp -= 20;
-			temp *= 2.6;
-			uint16_t raw = temp < 0 ? 0 : temp;
-			uint8_t value = raw > 180 ? 180 : raw;
-			rgbLed.fadeTo(480, xpcc::color::Hsv(180-value, 255, 255));
-		}
 
 		if (Uart::read(uartRead))
 		{
