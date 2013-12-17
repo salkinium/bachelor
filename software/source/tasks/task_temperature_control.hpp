@@ -36,7 +36,7 @@ public:
 	getEstimatedRemainingTime();
 
 	bool
-	run();
+	update();
 
 private:
 	float targetTemperature;

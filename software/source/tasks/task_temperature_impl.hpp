@@ -78,7 +78,7 @@ task::Temperature::getTemperature(uint8_t sensor)
 }
 
 bool
-task::Temperature::run()
+task::Temperature::update()
 {
 	sensor0.update();
 

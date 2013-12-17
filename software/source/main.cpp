@@ -85,9 +85,9 @@ main(void)
 
 	while (1)
 	{
-		rgbLed.run();
-		temperature.run();
-		temperatureControl.run();
+		rgbLed.update();
+		temperature.update();
+		temperatureControl.update();
 
 		if (Uart::read(uartRead))
 		{

@@ -29,7 +29,7 @@ public:
 	getPower();
 
 	bool
-	run();
+	update();
 
 private:
 	xpcc::ui::Led& led;

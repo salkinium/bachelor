@@ -38,7 +38,7 @@ public:
 	getTemperature(uint8_t sensor);
 
 	bool
-	run();
+	update();
 
 private:
 	xpcc::PeriodicTimer<> readTimer;

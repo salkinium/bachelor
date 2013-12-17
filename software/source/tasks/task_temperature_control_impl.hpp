@@ -31,10 +31,10 @@ task::TemperatureControl::getTemperature()
 }
 
 bool
-task::TemperatureControl::run()
+task::TemperatureControl::update()
 {
-	heater.run();
-	heaterFan.run();
+	heater.update();
+	heaterFan.update();
 
 	PT_BEGIN();
 
