@@ -78,12 +78,9 @@ main(void)
 
 	PsOn::reset();
 
-	temperature.configureSensors();
+	xpcc::delay_ms(200);
 
-	uint8_t uartRead;
-	bool pidParam(false);
-	char buffer[20];
-	uint8_t index(0);
+	temperature.configureSensors();
 
 	while (1)
 	{
@@ -91,44 +88,6 @@ main(void)
 		temperature.update();
 		temperatureControl.update();
 		inputOutput.update();
-
-		if (Uart::read(uartRead))
-		{
-			if (pidParam)
-			{
-				if (uartRead == '\n')
-				{
-					char *point = buffer+index;
-					long num = strtol(buffer, &point, 10);
-					XPCC_LOG_DEBUG << "input=" << num << xpcc::endl;
-					index = 0;
-					pidParam = false;
-					temperatureControl.setTemperature(num);
-				}
-				else
-				{
-					buffer[index++] = uartRead;
-				}
-			}
-			else
-			{
-				switch (uartRead)
-				{
-					case 'P':
-						PsOn::reset();
-						XPCC_LOG_DEBUG << "P on" << xpcc::endl;
-						break;
-					case 'p':
-						PsOn::set();
-						XPCC_LOG_DEBUG << "P off" << xpcc::endl;
-						break;
-					case 'C':
-						pidParam = true;
-						index = 0;
-						break;
-				}
-			}
-		}
 	}
 
 	return 0;

@@ -46,6 +46,13 @@ public:
 	update();
 
 private:
+	bool
+	updateParser(uint8_t &input);
+
+	void
+	formatTemperature(float temperature);
+
+private:
 	xpcc::IOStream stream;
 	xpcc::PeriodicTimer<> outputTimer;
 
@@ -55,11 +62,8 @@ private:
 	uint8_t uartData;
 	int8_t desiredTemperature;
 
-	bool
-	updateParser(uint8_t &input);
-
-	void
-	formatTemperature(float temperature);
+	char buffer[20];
+	uint8_t index;
 };
 
 } // namespace task

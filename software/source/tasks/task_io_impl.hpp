@@ -10,6 +10,8 @@
 #	error	"Don't include this file directly, use 'task_io.hpp' instead!"
 #endif
 
+#include <errno.h>
+
 #undef	XPCC_LOG_LEVEL
 #define	XPCC_LOG_LEVEL xpcc::log::ERROR
 
@@ -50,11 +52,7 @@ task::IO::update()
 
 		if (Uart::read(uartData))
 		{
-			if (!updateParser(uartData))
-			{
-				XPCC_LOG_ERROR << XPCC_FILE_INFO;
-				XPCC_LOG_ERROR << "Unable to format input." << xpcc::endl;
-			}
+			updateParser(uartData);
 		}
 
 		PT_YIELD();
@@ -67,7 +65,55 @@ task::IO::update()
 bool
 task::IO::updateParser(uint8_t &input)
 {
-	return false;
+	switch (input)
+	{
+		case 'P':
+			PsOn::reset();
+			XPCC_LOG_INFO << "Power on" << xpcc::endl;
+			index = 0;
+			break;
+		case 'p':
+			PsOn::set();
+			XPCC_LOG_INFO << "Power off" << xpcc::endl;
+			index = 0;
+			break;
+
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			buffer[index++] = input;
+			break;
+
+		case 'C':
+		{
+			char *point = buffer + index;
+			int16_t num = strtol(buffer, &point, 10);
+			index = 0;
+			if (num == 0 && errno != 0)
+			{
+				XPCC_LOG_ERROR << "Failed to parse integer!" << xpcc::endl;
+				return false;
+			} else {
+				XPCC_LOG_DEBUG << "input=" << num << xpcc::endl;
+			}
+			control.setTemperature(num);
+			desiredTemperature = num;
+		}
+			break;
+
+		case '\n':
+			index = 0;
+			break;
+	}
+
+	return true;
 }
 
 void
