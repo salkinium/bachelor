@@ -27,7 +27,7 @@ task::TemperatureControl::setTemperature(float temperature)
 float
 task::TemperatureControl::getTemperature()
 {
-	return temperature.getTemperature(1);
+	return temperature.getTemperature(0);
 }
 
 bool
@@ -46,19 +46,6 @@ task::TemperatureControl::update()
 
 		// this scope is needed for the local variables
 		{
-			float temp = temperature.getTemperature(0);
-			XPCC_LOG_DEBUG << "onBoard: " << static_cast<uint8_t>(temp) << ".";
-			temp = temp - static_cast<uint8_t>(temp);
-			temp *= 100;
-			XPCC_LOG_DEBUG << static_cast<uint8_t>(temp) << " C ";
-
-			temp = temperature.getTemperature(1);
-			XPCC_LOG_DEBUG << "temp1: " << static_cast<uint8_t>(temp) << ".";
-			temp = temp - static_cast<uint8_t>(temp);
-			temp *= 100;
-			XPCC_LOG_DEBUG << static_cast<uint8_t>(temp) << " C ";
-
-
 			int16_t value = tPid.getValue();
 			XPCC_LOG_DEBUG << "lastError= " << tPid.getLastError();
 			XPCC_LOG_DEBUG << " errorSum= " << tPid.getErrorSum();

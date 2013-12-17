@@ -71,6 +71,8 @@ main(void)
 	temperature.addSensor(sensor3);
 	temperature.addSensor(sensor4);
 
+	inputOutput.setOutputFrequency(task::OutputFrequency::Seconds10);
+
 	xpcc::atmega::enableInterrupts();
 	XPCC_LOG_INFO << "\n\nRESTART\n\n";
 
@@ -88,6 +90,7 @@ main(void)
 		rgbLed.update();
 		temperature.update();
 		temperatureControl.update();
+		inputOutput.update();
 
 		if (Uart::read(uartRead))
 		{

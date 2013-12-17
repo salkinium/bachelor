@@ -65,14 +65,14 @@ xpcc::ui::RgbLed rgbLed(redLed, greenLed, blueLed);
 
 // COMMUNICATION ##############################################################
 // Message
-struct SensorData
+struct
 {
 	uint8_t temperature0[2];
 	uint8_t temperature1[2];
 	uint8_t temperature2[2];
     uint8_t temperature3[2];
     uint8_t temperature4[2];
-} sensorData;
+} rawSensorData;
 
 // TMP102 and TMP175 drivers
 #include <xpcc/driver/temperature/tmp102.hpp>
@@ -80,24 +80,37 @@ struct SensorData
 typedef I2cMaster Twi;
 
 // This sensor is always present
-xpcc::Tmp175<Twi> sensor0(sensorData.temperature0, 0b1001111);
+xpcc::Tmp175<Twi> sensor0(rawSensorData.temperature0, 0b1001111);
 
 // these sensors are purely optional
-xpcc::Tmp102<Twi> sensor1(sensorData.temperature1, 0x48);
-xpcc::Tmp102<Twi> sensor2(sensorData.temperature2, 0x49);
-xpcc::Tmp102<Twi> sensor3(sensorData.temperature3, 0x4A);
-xpcc::Tmp102<Twi> sensor4(sensorData.temperature4, 0x4B);
+xpcc::Tmp102<Twi> sensor1(rawSensorData.temperature1, 0x48);
+xpcc::Tmp102<Twi> sensor2(rawSensorData.temperature2, 0x49);
+xpcc::Tmp102<Twi> sensor3(rawSensorData.temperature3, 0x4A);
+xpcc::Tmp102<Twi> sensor4(rawSensorData.temperature4, 0x4B);
 
 // Serial debug
 #include <xpcc/io/iodevice_wrapper.hpp>
 typedef Uart0 Uart;
-xpcc::IODeviceWrapper<Uart> logger;
+xpcc::IODeviceWrapper<Uart> outputDevice;
 
+#include <xpcc/debug/logger/style_wrapper.hpp>
+#include <xpcc/debug/logger/style/prefix.hpp>
 #include <xpcc/debug/logger.hpp>
-xpcc::log::Logger xpcc::log::debug(logger);
-xpcc::log::Logger xpcc::log::info(logger);
-xpcc::log::Logger xpcc::log::warning(logger);
-xpcc::log::Logger xpcc::log::error(logger);
+xpcc::log::StyleWrapper< xpcc::log::Prefix< char[10] > > loggerDeviceDebug (
+		xpcc::log::Prefix< char[10] > ("Debug:   ", outputDevice ) );
+xpcc::log::Logger xpcc::log::debug( loggerDeviceDebug );
+
+xpcc::log::StyleWrapper< xpcc::log::Prefix< char[10] > > loggerDeviceInfo (
+		xpcc::log::Prefix< char[10] > ("Info:    ", outputDevice ) );
+xpcc::log::Logger xpcc::log::info( loggerDeviceInfo );
+
+xpcc::log::StyleWrapper< xpcc::log::Prefix< char[10] > > loggerDeviceWarning (
+		xpcc::log::Prefix< char[10] > ("Warning: ", outputDevice ) );
+xpcc::log::Logger xpcc::log::warning( loggerDeviceWarning );
+
+xpcc::log::StyleWrapper< xpcc::log::Prefix< char[10] > > loggerDeviceError (
+		xpcc::log::Prefix< char[10] > ("Error    ", outputDevice ) );
+xpcc::log::Logger xpcc::log::error( loggerDeviceError );
 
 #undef	XPCC_LOG_LEVEL
 #define	XPCC_LOG_LEVEL xpcc::log::DEBUG
@@ -113,5 +126,8 @@ task::Temperature temperature;
 
 #include "tasks/task_temperature_control.hpp"
 task::TemperatureControl temperatureControl;
+
+#include "tasks/task_io.hpp"
+task::IO inputOutput(temperature, temperatureControl);
 
 #endif // THESIS_HARDWARE

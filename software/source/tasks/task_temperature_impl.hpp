@@ -27,6 +27,12 @@ task::Temperature::addSensor(xpcc::Tmp102<Twi> &sensor)
 	return numberOfSensors;
 }
 
+uint8_t
+task::Temperature::getNumberOfSensors()
+{
+	return numberOfSensors;
+}
+
 bool
 task::Temperature::configureSensors()
 {

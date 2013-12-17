@@ -27,6 +27,9 @@ public:
 	uint8_t
 	addSensor(xpcc::Tmp102<Twi> &sensor);
 
+	uint8_t
+	getNumberOfSensors();
+
 	bool
 	configureSensors();
 
