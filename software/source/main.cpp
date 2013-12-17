@@ -40,14 +40,14 @@ int
 main(void)
 {
 	// set the power pins
-	PsOn::setOutput(xpcc::Gpio::HIGH);
+	PsOn::setOutput(xpcc::Gpio::High);
 	PwrOk::setInput();
 
 	// set the temperature pins
-	HeaterPin::setOutput(xpcc::Gpio::LOW);
-	HeaterFanPin::setOutput(xpcc::Gpio::LOW);
-	CoolerPin::setOutput(xpcc::Gpio::LOW);
-	CoolerFanPin::setOutput(xpcc::Gpio::LOW);
+	HeaterPin::setOutput(xpcc::Gpio::Low);
+	HeaterFanPin::setOutput(xpcc::Gpio::Low);
+	CoolerPin::setOutput(xpcc::Gpio::Low);
+	CoolerFanPin::setOutput(xpcc::Gpio::Low);
 
 	// set the led pins
 	initializeLeds();
