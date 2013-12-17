@@ -14,44 +14,66 @@
 #define	XPCC_LOG_LEVEL xpcc::log::ERROR
 
 task::Temperature::Temperature()
-:	readTimer(250), temperatures{0,0,0,0,0}
+:	readTimer(250), temperatures{0,0,0,0,0}, numberOfSensors(1)
 {
+}
+
+uint8_t
+task::Temperature::addSensor(xpcc::Tmp102<Twi> &sensor)
+{
+	sensorList.append(sensor);
+	numberOfSensors++;
+	XPCC_LOG_DEBUG << "Adding temperature sensor No " << numberOfSensors << xpcc::endl;
+	return numberOfSensors;
 }
 
 bool
 task::Temperature::configureSensors()
 {
-	xpcc::Timeout<> configTimeout(1000);
+	xpcc::Timeout<> configTimeout;
 	bool success(true);
+	bool allSuccessful(true);
 
+	configTimeout.restart(1000);
 	while(!(success = sensor0.configure()) && !configTimeout.isExpired())
 		;
 	if (!success) {
 		XPCC_LOG_ERROR << "On Board Sensor config timed out!" << xpcc::endl;
-		return false;
-	}
-	configTimeout.restart(1000);
-	while(!(success = sensor1.configure()) && !configTimeout.isExpired())
-		;
-	if (!success) {
-		XPCC_LOG_ERROR << "Temp1 Sensor config timed out!" << xpcc::endl;
-		return false;
+		allSuccessful = false;
 	}
 
-	return true;
+	for (SensorList::iterator iterator = sensorList.begin();
+			iterator != sensorList.end();
+			++iterator)
+	{
+		configTimeout.restart(1000);
+		while(!(success = iterator->configure()) && !configTimeout.isExpired())
+			;
+		if (!success) {
+			XPCC_LOG_ERROR << "Temp Sensor config timed out!" << xpcc::endl;
+			allSuccessful = false;
+		}
+	}
+
+	return allSuccessful;
 }
 
 float
 task::Temperature::getAverage()
 {
-	float sum = temperatures[0] + temperatures[1];
-	return (sum / 2.0f);
+	float sum(0);
+	for (uint8_t ii=0; ii < numberOfSensors - 1; ii++)
+	{
+		sum += temperatures[ii];
+	}
+
+	return sum / numberOfSensors;
 }
 
 float
 task::Temperature::getTemperature(uint8_t sensor)
 {
-	if (sensor > 1) return 0;
+	if (sensor >= numberOfSensors) return NAN;
 	return temperatures[sensor];
 }
 
@@ -59,7 +81,13 @@ bool
 task::Temperature::run()
 {
 	sensor0.update();
-	sensor1.update();
+
+	for (SensorList::iterator iterator = sensorList.begin();
+			iterator != sensorList.end();
+			++iterator)
+	{
+		iterator->update();
+	}
 
 	PT_BEGIN();
 
@@ -68,9 +96,16 @@ task::Temperature::run()
 		if (readTimer.isExpired())
 		{
 			sensor0.readTemperature();
-			sensor1.readTemperature();
 
-			float temp = getTemperature(1);
+			for (SensorList::iterator iterator = sensorList.begin();
+					iterator != sensorList.end();
+					++iterator)
+			{
+				iterator->readTemperature();
+			}
+
+			// display the current temperature on the led.
+			float temp = getTemperature(0);
 			temp -= 20;
 			temp *= 2.65;
 			uint16_t raw = temp < 0 ? 0 : temp;
@@ -86,10 +121,17 @@ task::Temperature::run()
 			temperatures[0] = sensor0.getTemperature();
 		}
 
-		if (sensor1.isNewDataAvailable())
 		{
-			sensor1.getData();
-			temperatures[1] = sensor1.getTemperature();
+			uint8_t sensorNo(0);
+			for (SensorList::iterator iterator = sensorList.begin();
+						iterator != sensorList.end();
+						++iterator, sensorNo++)
+			{
+				if (iterator->isNewDataAvailable())
+				{
+					temperatures[sensorNo+1] = iterator->getTemperature();
+				}
+			}
 		}
 
 		PT_YIELD();

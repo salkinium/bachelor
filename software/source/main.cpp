@@ -66,6 +66,11 @@ main(void)
 	GpioD1::connect(Uart::Tx);
 	Uart::initialize<Uart::B115200>();
 
+	temperature.addSensor(sensor1);
+	temperature.addSensor(sensor2);
+	temperature.addSensor(sensor3);
+	temperature.addSensor(sensor4);
+
 	xpcc::atmega::enableInterrupts();
 	XPCC_LOG_INFO << "\n\nRESTART\n\n";
 

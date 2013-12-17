@@ -12,6 +12,7 @@
 #include <xpcc/processing/protothread.hpp>
 #include <xpcc/processing/periodic_timer.hpp>
 #include <xpcc/debug/logger.hpp>
+#include <xpcc/container.hpp>
 
 #include "../hardware.hpp"
 
@@ -22,6 +23,9 @@ class Temperature : private xpcc::pt::Protothread
 {
 public:
 	Temperature();
+
+	uint8_t
+	addSensor(xpcc::Tmp102<Twi> &sensor);
 
 	bool
 	configureSensors();
@@ -39,6 +43,10 @@ public:
 private:
 	xpcc::PeriodicTimer<> readTimer;
 	float temperatures[5];
+	uint8_t numberOfSensors;
+
+	typedef xpcc::LinkedList< xpcc::Tmp102<Twi> > SensorList;
+	SensorList sensorList;
 };
 
 } // namespace task

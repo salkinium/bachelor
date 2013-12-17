@@ -67,21 +67,26 @@ xpcc::ui::RgbLed rgbLed(redLed, greenLed, blueLed);
 // Message
 struct SensorData
 {
-	uint8_t tempData0[2];
-	uint8_t tempData1[2];
-	uint8_t tempData2[2];
-}
-sensorMessage __attribute__((packed));
+	uint8_t temperature0[2];
+	uint8_t temperature1[2];
+	uint8_t temperature2[2];
+    uint8_t temperature3[2];
+    uint8_t temperature4[2];
+} sensorData;
 
 // TMP102 and TMP175 drivers
 #include <xpcc/driver/temperature/tmp102.hpp>
 #include <xpcc/driver/temperature/tmp175.hpp>
 typedef I2cMaster Twi;
-xpcc::Tmp175<Twi> sensor0(sensorMessage.tempData0, 0b1001111);
-xpcc::Tmp102<Twi> sensor1(sensorMessage.tempData1, 0x48);
-//xpcc::Tmp102<Twi> sensor2(sensorMessage.tempData2, 0x49);
-//xpcc::Tmp102<Twi> sensor3(sensorMessage.tempData3, 0x4A);
-//xpcc::Tmp102<Twi> sensor4(sensorMessage.tempData4, 0x4B);
+
+// This sensor is always present
+xpcc::Tmp175<Twi> sensor0(sensorData.temperature0, 0b1001111);
+
+// these sensors are purely optional
+xpcc::Tmp102<Twi> sensor1(sensorData.temperature1, 0x48);
+xpcc::Tmp102<Twi> sensor2(sensorData.temperature2, 0x49);
+xpcc::Tmp102<Twi> sensor3(sensorData.temperature3, 0x4A);
+xpcc::Tmp102<Twi> sensor4(sensorData.temperature4, 0x4B);
 
 // Serial debug
 #include <xpcc/io/iodevice_wrapper.hpp>
