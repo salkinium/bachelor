@@ -25,7 +25,7 @@ public:
 	Temperature();
 
 	uint8_t
-	addSensor(xpcc::Tmp102<Twi> &sensor);
+	addSensor(xpcc::Tmp102<Twi> *sensor);
 
 	uint8_t
 	getNumberOfSensors();
@@ -48,8 +48,7 @@ private:
 	float temperatures[5];
 	uint8_t numberOfSensors;
 
-	typedef xpcc::LinkedList< xpcc::Tmp102<Twi> > SensorList;
-	SensorList sensorList;
+	xpcc::Tmp102<Twi>* sensorList[4];
 };
 
 } // namespace task

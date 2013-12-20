@@ -13,7 +13,7 @@
 #include <errno.h>
 
 #undef	XPCC_LOG_LEVEL
-#define	XPCC_LOG_LEVEL xpcc::log::ERROR
+#define	XPCC_LOG_LEVEL xpcc::log::INFO
 
 task::IO::IO(Temperature &sensors, TemperatureControl &control)
 :	stream(outputDevice), outputTimer(10000), sensors(sensors), control(control),
@@ -46,6 +46,9 @@ task::IO::update()
 			for (uint8_t ii=0; ii < sensors.getNumberOfSensors(); ii++)
 			{
 				formatTemperature(sensors.getTemperature(ii));
+				if (ii + 2 <= sensors.getNumberOfSensors()) {
+					stream << ",\t";
+				}
 			}
 			stream << xpcc::endl;
 		}
@@ -95,21 +98,24 @@ task::IO::updateParser(uint8_t &input)
 		{
 			char *point = buffer + index;
 			int16_t num = strtol(buffer, &point, 10);
-			index = 0;
 			if (num == 0 && errno != 0)
 			{
 				XPCC_LOG_ERROR << "Failed to parse integer!" << xpcc::endl;
 				return false;
 			} else {
-				XPCC_LOG_DEBUG << "input=" << num << xpcc::endl;
+				XPCC_LOG_INFO << "Desired Temperature set = " << num << " C" << xpcc::endl;
 			}
 			control.setTemperature(num);
 			desiredTemperature = num;
 		}
-			break;
+			// break;
 
 		case '\n':
 			index = 0;
+			for (uint8_t ii=0; ii < 20; ++ii)
+			{
+				buffer[ii] = ' ';
+			}
 			break;
 	}
 
@@ -122,5 +128,5 @@ task::IO::formatTemperature(float temperature)
 	stream << static_cast<int8_t>(temperature) << ".";
 	temperature = temperature - static_cast<int8_t>(temperature);
 	temperature *= 100;
-	stream << static_cast<uint8_t>(temperature) << " C, ";
+	stream << static_cast<uint8_t>(temperature) << " C";
 }

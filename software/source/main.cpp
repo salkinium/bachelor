@@ -58,27 +58,27 @@ main(void)
 	WhiteRightLedPin::setOutput();
 
 	// connect the peripherals
-	GpioC5::connect(Twi::Scl);
-	GpioC4::connect(Twi::Sda);
+	Scl::connect(Twi::Scl);
+	Sda::connect(Twi::Sda);
 	Twi::initialize<Twi::DataRate::Standard>();
 
 	GpioD0::connect(Uart::Rx);
 	GpioD1::connect(Uart::Tx);
 	Uart::initialize<Uart::B115200>();
 
-	temperature.addSensor(sensor1);
-	temperature.addSensor(sensor2);
-	temperature.addSensor(sensor3);
-	temperature.addSensor(sensor4);
+	enableInterrupts();
+	XPCC_LOG_INFO << "\n\nRESTART\n" << xpcc::endl;
 
-	inputOutput.setOutputFrequency(task::OutputFrequency::Seconds10);
+//	temperature.addSensor(&sensor1);
+	temperature.addSensor(&sensor2);
+//	temperature.addSensor(&sensor3);
+//	temperature.addSensor(&sensor4);
 
-	xpcc::atmega::enableInterrupts();
-	XPCC_LOG_INFO << "\n\nRESTART\n\n";
+	inputOutput.setOutputFrequency(task::OutputFrequency::Seconds1);
 
 	PsOn::reset();
-
-	xpcc::delay_ms(200);
+	// wait for power supply to settle
+	xpcc::delay_ms(500);
 
 	temperature.configureSensors();
 

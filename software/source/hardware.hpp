@@ -77,16 +77,24 @@ struct
 // TMP102 and TMP175 drivers
 #include <xpcc/driver/temperature/tmp102.hpp>
 #include <xpcc/driver/temperature/tmp175.hpp>
+/*
+typedef GpioC4 Sda;
+typedef GpioC5 Scl;
 typedef I2cMaster Twi;
+/*/
+typedef GpioOpenDrain<GpioC4> Sda;
+typedef GpioOpenDrain<GpioC5> Scl;
+typedef xpcc::SoftwareI2cMaster<Scl, Sda> Twi;
+//*/
 
 // This sensor is always present
 xpcc::Tmp175<Twi> sensor0(rawSensorData.temperature0, 0b1001111);
 
 // these sensors are purely optional
-xpcc::Tmp102<Twi> sensor1(rawSensorData.temperature1, 0x48);
-xpcc::Tmp102<Twi> sensor2(rawSensorData.temperature2, 0x49);
-xpcc::Tmp102<Twi> sensor3(rawSensorData.temperature3, 0x4A);
-xpcc::Tmp102<Twi> sensor4(rawSensorData.temperature4, 0x4B);
+xpcc::Tmp102<Twi> sensor1(rawSensorData.temperature1, 0b1001000);
+xpcc::Tmp102<Twi> sensor2(rawSensorData.temperature2, 0b1001001);
+xpcc::Tmp102<Twi> sensor3(rawSensorData.temperature3, 0b1001010);
+xpcc::Tmp102<Twi> sensor4(rawSensorData.temperature4, 0b1001011);
 
 // Serial debug
 #include <xpcc/io/iodevice_wrapper.hpp>

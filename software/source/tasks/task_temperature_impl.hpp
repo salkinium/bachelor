@@ -11,7 +11,7 @@
 #endif
 
 #undef	XPCC_LOG_LEVEL
-#define	XPCC_LOG_LEVEL xpcc::log::ERROR
+#define	XPCC_LOG_LEVEL xpcc::log::DEBUG
 
 task::Temperature::Temperature()
 :	readTimer(250), temperatures{0,0,0,0,0}, numberOfSensors(1)
@@ -19,11 +19,11 @@ task::Temperature::Temperature()
 }
 
 uint8_t
-task::Temperature::addSensor(xpcc::Tmp102<Twi> &sensor)
+task::Temperature::addSensor(xpcc::Tmp102<Twi> *sensor)
 {
-	sensorList.append(sensor);
+	sensorList[numberOfSensors-1] = sensor;
 	numberOfSensors++;
-	XPCC_LOG_DEBUG << "Adding temperature sensor No " << numberOfSensors << xpcc::endl;
+	XPCC_LOG_INFO << "Adding temperature sensor No " << numberOfSensors << xpcc::endl;
 	return numberOfSensors;
 }
 
@@ -48,17 +48,18 @@ task::Temperature::configureSensors()
 		allSuccessful = false;
 	}
 
-	for (SensorList::iterator iterator = sensorList.begin();
-			iterator != sensorList.end();
-			++iterator)
+	XPCC_LOG_INFO << "On Board Sensor configured" << xpcc::endl;
+
+	for (uint8_t ii = 0; ii < numberOfSensors-1; ++ii)
 	{
 		configTimeout.restart(1000);
-		while(!(success = iterator->configure()) && !configTimeout.isExpired())
+		while(!(success = sensor1.configure()) && !configTimeout.isExpired())
 			;
 		if (!success) {
-			XPCC_LOG_ERROR << "Temp Sensor config timed out!" << xpcc::endl;
+			XPCC_LOG_ERROR << "Temp Sensor " << ii+1 << " config timed out!" << xpcc::endl;
 			allSuccessful = false;
 		}
+		XPCC_LOG_INFO << "Temp Sensor " << ii+1 << " configured" << xpcc::endl;
 	}
 
 	return allSuccessful;
@@ -68,7 +69,7 @@ float
 task::Temperature::getAverage()
 {
 	float sum(0);
-	for (uint8_t ii=0; ii < numberOfSensors - 1; ii++)
+	for (uint8_t ii=0; ii < numberOfSensors; ii++)
 	{
 		sum += temperatures[ii];
 	}
@@ -88,11 +89,9 @@ task::Temperature::update()
 {
 	sensor0.update();
 
-	for (SensorList::iterator iterator = sensorList.begin();
-			iterator != sensorList.end();
-			++iterator)
+	for (uint8_t ii = 0; ii < numberOfSensors-1; ++ii)
 	{
-		iterator->update();
+		sensorList[ii]->update();
 	}
 
 	PT_BEGIN();
@@ -103,11 +102,9 @@ task::Temperature::update()
 		{
 			sensor0.readTemperature();
 
-			for (SensorList::iterator iterator = sensorList.begin();
-					iterator != sensorList.end();
-					++iterator)
+			for (uint8_t ii = 0; ii < numberOfSensors-1; ++ii)
 			{
-				iterator->readTemperature();
+				sensorList[ii]->readTemperature();
 			}
 
 			// display the current temperature on the led.
@@ -121,22 +118,15 @@ task::Temperature::update()
 
 		if (sensor0.isNewDataAvailable())
 		{
-			XPCC_LOG_DEBUG << XPCC_FILE_INFO;
-			XPCC_LOG_DEBUG << "sensor0 new data" << xpcc::endl;
 			sensor0.getData();
 			temperatures[0] = sensor0.getTemperature();
 		}
 
+		for (uint8_t ii = 0; ii < numberOfSensors-1; ++ii)
 		{
-			uint8_t sensorNo(0);
-			for (SensorList::iterator iterator = sensorList.begin();
-						iterator != sensorList.end();
-						++iterator, sensorNo++)
+			if (sensorList[ii]->isNewDataAvailable())
 			{
-				if (iterator->isNewDataAvailable())
-				{
-					temperatures[sensorNo+1] = iterator->getTemperature();
-				}
+				temperatures[ii+1] = sensorList[ii]->getTemperature();
 			}
 		}
 

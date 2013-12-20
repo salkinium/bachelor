@@ -11,7 +11,7 @@
 #endif
 
 #undef	XPCC_LOG_LEVEL
-#define	XPCC_LOG_LEVEL xpcc::log::DEBUG
+#define	XPCC_LOG_LEVEL xpcc::log::ERROR
 
 task::TemperatureControl::TemperatureControl()
 :	targetTemperature(0), timer(250), tPid(10, 0.4, 1.0, 0.7, 100)
@@ -21,13 +21,13 @@ task::TemperatureControl::TemperatureControl()
 void
 task::TemperatureControl::setTemperature(float temperature)
 {
-	targetTemperature = temperature;
+	targetTemperature = temperature+2;
 }
 
 float
 task::TemperatureControl::getTemperature()
 {
-	return temperature.getTemperature(0);
+	return temperature.getAverage();
 }
 
 bool
