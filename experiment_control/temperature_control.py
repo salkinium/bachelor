@@ -7,8 +7,9 @@
 # -----------------------------------------------------------------------------
 
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'logger'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'link_analysis'))
 from logger import Logger
+
 from multiprocessing import Process
 import time
 import serial
@@ -19,19 +20,18 @@ class TemperatureControl(Process):
 	a TemperatureBox. 
 	"""
 
-	def __init__(self, portName=None, logger=None):
+	def __init__(self, device=None, logger=None):
 		super(TemperatureControl, self).__init__()
 		if logger == None:
 			self.log = Logger()
 		else:
 			self.log = logger
 		
-		self.port = serial.Serial(port=portName, baudrate=115200, timeout=5)
-		self.port.open()
+		self.port = serial.Serial(port=device, baudrate=115200, timeout=5)
 		
 		self.temperatures = []
+		self.log.info("TemperatureControl(%s): starting thread" % self.port.port)
 		self.start()
-		self.log.info("TemperatureControl: starting thread")
 	
 	def getTemperature(self):
 		if len(self.temperatures):
@@ -44,14 +44,15 @@ class TemperatureControl(Process):
 	
 	def run(self):
 		while(True):
-			line = self.port.readline()
-			line = line.translate(None, '\n')
-			if line.startswith('T:'):
-				temps = line[3:].translate(None, ' C,').split('\t')
+			line = self.port.readline()[:-1]
+			if line.startswith("T:"):
+				temps = line[3:].translate(None, " C,").split('\t')
 				self.temperatures = [float(t) for t in temps]
 				self.log.debug("TemperatureControl(%s): temperature=%s" % (self.port.port, self.getTemperature()))
 			elif line.startswith('Info:'):
-				self.log.info("TemperatureControl(%s): %s" % (self.port.port, line.replace('Info:', ''))) 
+				self.log.info("TemperatureControl(%s): %s" % (self.port.port, line.replace('Info:', '')))
+			else:
+				self.log.warn("TemperatureControl(%s): Unknown input '%s'" % (self.port.port, line))
 	
 	def __repr__(self):
 		return self.__str__()
