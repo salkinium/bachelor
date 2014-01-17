@@ -15,7 +15,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'link_analysis'))
 from logger import Logger
 import time
 
-from temperature_controller import TemperatureControl
+from temperature_control import TemperatureControl
+from mote_control import MoteControl
 
 if __name__ == "__main__":
     """
@@ -25,13 +26,8 @@ if __name__ == "__main__":
     logger = Logger(level)
     
     control = TemperatureControl('/dev/ttyUSB0', logger)
+    mote = MoteControl("/dev/ttyUSB1:telos", logger)
     
     while(True):
-        time.sleep(5)
-        control.setTemperature(0)
-        time.sleep(15)
-        control.setTemperature(30)
-        time.sleep(15)
-        control.setTemperature(50)
         pass
     
