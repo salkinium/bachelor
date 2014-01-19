@@ -128,5 +128,7 @@ task::IO::formatTemperature(float temperature)
 	stream << static_cast<int8_t>(temperature) << ".";
 	temperature = temperature - static_cast<int8_t>(temperature);
 	temperature *= 100;
+	if (temperature < 10)
+		stream << "0";
 	stream << static_cast<uint8_t>(temperature) << " C";
 }
