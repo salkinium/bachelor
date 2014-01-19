@@ -28,10 +28,7 @@ class MoteControl:
 
 	def __init__(self, device=None, logger=None):
 		#super(MoteControl, self).__init__()
-		if logger == None:
-			self.log = Logger()
-		else:
-			self.log = logger
+		self.log = logger if logger else Logger()
 		
 		self.mif = MoteIF.MoteIF()
 		self.device = device
@@ -68,4 +65,3 @@ class MoteControl:
 
 	def __str__(self):
 		return ("MoteControl( %s )\n" % self.device) \
-			.replace("\n", "\n\t")

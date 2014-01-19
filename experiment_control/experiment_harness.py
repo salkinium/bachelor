@@ -8,25 +8,38 @@
 # -----------------------------------------------------------------------------
 
 
-import os, sys
+import os, sys, signal
 import glob
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'link_analysis'))
 from logger import Logger
 import time
 
-from temperature_control import TemperatureControl
-from mote_control import MoteControl
+from daemonize import Daemonize
+from box import TemperatureBox
 
 if __name__ == "__main__":
-    """
-    Some test code
-    """
+
     level = 'debug'
     logger = Logger(level)
+
+    box1 = Box("Box1", "/dev/ttyUSB0:telos", "/dev/ttyUSB1", logger)
+    box2 = Box("Box2", "/dev/ttyUSB2:telos", "/dev/ttyUSB3", logger)
+
+    original_sigint = signal.getsignal(signal.SIGINT)
+
+    def exit_gracefully(signum, frame):
+        # restore the original signal handler as otherwise evil things will happen
+        # in raw_input when CTRL+C is pressed, and our signal handler is not re-entrant
+        signal.signal(signal.SIGINT, original_sigint)
     
-    control = TemperatureControl('/dev/ttyUSB0', logger)
-    mote = MoteControl("/dev/ttyUSB1:telos", logger)
+        print 'closing all ports...'
+        control.port.close()
+        mote.tos_source.close()
+        print
+        sys.exit(1)
+    
+    signal.signal(signal.SIGINT, exit_gracefully)
     
     while(True):
         pass

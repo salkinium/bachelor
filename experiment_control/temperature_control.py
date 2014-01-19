@@ -14,7 +14,7 @@ from multiprocessing import Process
 import time
 import serial
 
-class TemperatureControl(Process):
+class TemperatureControl(Process, object):
 	""" TemperatureControl
 	Enables communication with the controller which manages temperature inside
 	a TemperatureBox. 
@@ -22,25 +22,30 @@ class TemperatureControl(Process):
 
 	def __init__(self, device=None, logger=None):
 		super(TemperatureControl, self).__init__()
-		if logger == None:
-			self.log = Logger()
-		else:
-			self.log = logger
+		self.log = logger if logger else Logger()
 		
-		self.port = serial.Serial(port=device, baudrate=115200, timeout=5)
+		try:
+			self.port = serial.Serial(port=device, baudrate=115200, timeout=5)
+		except:
+			self.log.error("TemperatureControl(%s): unable to open port" % self.port.port)
 		
 		self.temperatures = []
 		self.log.info("TemperatureControl(%s): starting thread" % self.port.port)
 		self.start()
 	
-	def getTemperature(self):
+	@property
+	def temperature(self):
 		if len(self.temperatures):
 			return sum(self.temperatures) / float(len(self.temperatures))
 		
 		return 0
 	
-	def setTemperature(self, temperature):
-		self.port.write("%sC" % str(int(temperature)))
+	@temperature.setter
+	def temperature(self, value):
+		try:
+			self.port.write("%sC" % str(int(value)))
+		except:
+			self.log.error('TemperatureControl(%s): unable to send temperature', self.port.port)
 	
 	def run(self):
 		while(True):
@@ -48,7 +53,7 @@ class TemperatureControl(Process):
 			if line.startswith("T:"):
 				temps = line[3:].translate(None, " C,").split('\t')
 				self.temperatures = [float(t) for t in temps]
-				self.log.debug("TemperatureControl(%s): temperature=%s" % (self.port.port, self.getTemperature()))
+				self.log.debug("TemperatureControl(%s): temperature=%s" % (self.port.port, self.temperature))
 			elif line.startswith('Info:'):
 				self.log.info("TemperatureControl(%s): %s" % (self.port.port, line.replace('Info:', '')))
 			else:
