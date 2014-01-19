@@ -6,7 +6,7 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
-from logger import Logger
+import logging
 
 class Link:
 	""" Link
@@ -15,12 +15,7 @@ class Link:
 	and power settings.
 	"""
 
-	def __init__(self, properties=None, logger=None):
-		if logger == None:
-			self.log = Logger()
-		else:
-			self.log = logger
-		
+	def __init__(self, properties=None):
 		self.properties = {}
 		
 		if properties:

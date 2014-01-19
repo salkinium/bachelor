@@ -6,12 +6,8 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'link_analysis'))
-from logger import Logger
-
+import logging
 from multiprocessing import Process
-import time
 import serial
 
 class TemperatureControl(Process, object):
@@ -20,17 +16,32 @@ class TemperatureControl(Process, object):
 	a TemperatureBox. 
 	"""
 
-	def __init__(self, device=None, logger=None):
+	def __init__(self, device, logFile=None):
 		super(TemperatureControl, self).__init__()
-		self.log = logger if logger else Logger()
+		
+		self.logger = logging.getLogger('TemperatureControl.({})'.format(device))
+		self.logger.setLevel(logging.DEBUG)
+		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+		# console logging
+		ch = logging.StreamHandler()
+		ch.setLevel(logging.WARN if logFile else logging.DEBUG)
+		ch.setFormatter(formatter)
+		self.logger.addHandler(ch)
+		
+		# file logging
+		if logFile:
+			fh = logging.FileHandler(logFile)
+			fh.setLevel(logging.DEBUG)
+			fh.setFormatter(formatter)
+			self.logger.addHandler(fh)
 		
 		try:
 			self.port = serial.Serial(port=device, baudrate=115200, timeout=5)
 		except:
-			self.log.error("TemperatureControl(%s): unable to open port" % self.port.port)
+			self.logger.critical("unable to open device '{}'".format(device))
 		
 		self.temperatures = []
-		self.log.info("TemperatureControl(%s): starting thread" % self.port.port)
+		self.logger.info("listening")
 		self.start()
 	
 	@property
@@ -45,7 +56,7 @@ class TemperatureControl(Process, object):
 		try:
 			self.port.write("%sC" % str(int(value)))
 		except:
-			self.log.error('TemperatureControl(%s): unable to send temperature', self.port.port)
+			self.logger.error('unable to send temperature')
 	
 	def run(self):
 		while(True):
@@ -53,15 +64,14 @@ class TemperatureControl(Process, object):
 			if line.startswith("T:"):
 				temps = line[3:].translate(None, " C,").split('\t')
 				self.temperatures = [float(t) for t in temps]
-				self.log.debug("TemperatureControl(%s): temperature=%s" % (self.port.port, self.temperature))
+				self.logger.debug("temperature={}".format(self.temperature))
 			elif line.startswith('Info:'):
-				self.log.info("TemperatureControl(%s): %s" % (self.port.port, line.replace('Info:', '')))
+				self.logger.info(line.replace('Info:  ', ''))
 			else:
-				self.log.warn("TemperatureControl(%s): Unknown input '%s'" % (self.port.port, line))
+				self.logger.warn("unknown input '{}'".format(line))
 	
 	def __repr__(self):
 		return self.__str__()
 
 	def __str__(self):
-		return ("TemperatureControl(\t%s )\n" % self.port.port) \
-			.replace("\n", "\n\t")
+		return ("TemperatureControl( %s )\n" % self.port.port)

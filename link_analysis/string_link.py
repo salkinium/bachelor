@@ -7,7 +7,6 @@
 # -----------------------------------------------------------------------------
 
 
-from logger import Logger
 from link import Link
 import dateutil.parser
 
@@ -16,8 +15,8 @@ class StringLink(Link):
 	Parses a string and generates a link class 
 	"""
 
-	def __init__(self, string=None, logger=None):
-		Link.__init__(self, None, logger)
+	def __init__(self, string=None):
+		Link.__init__(self, None)
 		
 		if string:
 			self['string'] = string

@@ -10,21 +10,19 @@
 
 import os, sys, signal
 import glob
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'link_analysis'))
-from logger import Logger
 import time
 
 from daemonize import Daemonize
-from box import TemperatureBox
+from box import Box
 
 if __name__ == "__main__":
 
-    level = 'debug'
-    logger = Logger(level)
-
-    box1 = Box("Box1", "/dev/ttyUSB0:telos", "/dev/ttyUSB1", logger)
-    box2 = Box("Box2", "/dev/ttyUSB2:telos", "/dev/ttyUSB3", logger)
+    box1 = Box("Box1", "/dev/ttyUSB0:telos", "/dev/ttyUSB1",
+               '/home/niklas/development/hauser/experiment_control/mote0.log',
+               '/home/niklas/development/hauser/experiment_control/temp0.log')
+    box2 = Box("Box2", "/dev/ttyUSB2:telos", "/dev/ttyUSB3",
+               '/home/niklas/development/hauser/experiment_control/mote1.log',
+               '/home/niklas/development/hauser/experiment_control/temp1.log')
 
     original_sigint = signal.getsignal(signal.SIGINT)
 
