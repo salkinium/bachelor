@@ -13,15 +13,26 @@
 #undef	XPCC_LOG_LEVEL
 #define	XPCC_LOG_LEVEL xpcc::log::ERROR
 
+task::TemperatureControl::Point
+task::TemperatureControl::supportingPoints[5] =
+{
+	{0 , 0},
+	{30, 30},
+	{50, 50.5},
+	{70, 72},
+	{90, 94}
+};
+
 task::TemperatureControl::TemperatureControl()
-:	targetTemperature(0), timer(250), tPid(10, 0.4, 1.0, 0.7, 100)
+:	targetTemperature(0), timer(250), tPid(10, 0.4, 1.0, 0.7, 100),
+ 	correctedTemperature(supportingPoints, 5)
 {
 }
 
 void
 task::TemperatureControl::setTemperature(float temperature)
 {
-	targetTemperature = temperature+2;
+	targetTemperature = correctedTemperature.interpolate(temperature);
 }
 
 float

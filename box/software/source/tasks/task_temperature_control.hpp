@@ -12,6 +12,8 @@
 #include <xpcc/processing/protothread.hpp>
 #include <xpcc/processing/periodic_timer.hpp>
 #include <xpcc/math/filter/pid.hpp>
+#include <xpcc/math/interpolation/linear.hpp>
+#include <xpcc/architecture/driver/accessor.hpp>
 
 #include "../hardware.hpp"
 
@@ -42,6 +44,13 @@ private:
 	float targetTemperature;
 	xpcc::PeriodicTimer<> timer;
 	xpcc::Pid<float, 100> tPid;
+
+	// manual correction of heat flow from inside to outside
+	// this is tested for about 20C outside temperature
+	typedef xpcc::Pair<int8_t, float> Point;
+	static Point supportingPoints[5];
+
+	xpcc::interpolation::Linear<Point> correctedTemperature;
 };
 
 } // namespace task

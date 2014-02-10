@@ -74,7 +74,7 @@ main(void)
 //	temperature.addSensor(&sensor3);
 //	temperature.addSensor(&sensor4);
 
-	inputOutput.setOutputFrequency(task::OutputFrequency::Seconds1);
+	inputOutput.setOutputFrequency(task::OutputFrequency::Seconds10);
 
 	PsOn::reset();
 	// wait for power supply to settle
