@@ -7,8 +7,9 @@
 # -----------------------------------------------------------------------------
 
 import logging
+from multiprocessing import Process
 
-import os, sys
+import os, sys, time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tinyos', 'support', 'sdk', 'python'))
 
 from tinyos.message import *
@@ -19,12 +20,13 @@ from tinyos.packet.Serial import Serial
 from messages import *
 
 
-class MoteControl(object):
+class MoteControl(Process, object):
 	""" MoteControl
 	Enables communication with the WSN mote in the box.
 	"""
 
 	def __init__(self, device=None, logFile=None):
+		super(MoteControl, self).__init__()
 		
 		self.logger = logging.getLogger('MoteControl.({})'.format(device))
 		self.logger.setLevel(logging.DEBUG)
@@ -52,13 +54,24 @@ class MoteControl(object):
 		
 		self.temperature = 0
 		self.humidity = 0
+		self.receivedSerialMessages = []
+		
+		#self.start()
+	
+	def purgeReceiveBuffer(self):
+		self.receivedSerialMessages = []
+	
+	def receiveBufferEmpty(self):
+		return len(self.receivedSerialMessages) == 0
+	
+	def getReceivedMessage(self):
+		if not self.receiveBufferEmpty():
+			return self.receivedSerialMessages[0]
+		else:
+			return None
 	
 	def receive(self, src, msg):
-		if msg.get_amType() == SerialMessage.AM_TYPE:
-			m = SerialMessage.SerialMessage(msg.dataGet())
-			self.logger.debug("SerialMessage: {}".format(str(m)))
-			
-		elif msg.get_amType() == SensorMessage.AM_TYPE:
+		if msg.get_amType() == SensorMessage.AM_TYPE:
 			m = SensorMessage.SensorMessage(msg.dataGet())
 			self.temperature = m.get_temperature()*0.01 - 40.1
 			linear_humidity = -2.0468 + 0.0367 * m.get_humidity() + (-1.5955e-6 * m.get_humidity())**2
@@ -69,14 +82,21 @@ class MoteControl(object):
 			
 		elif msg.get_amType() == RadioMessage.AM_TYPE:
 			m = RadioMessage.RadioMessage(msg.dataGet())
-			self.logger.debug("RadioMessage: {}".format(str(m)))
+			self.logger.info("RadioMessage: {}".format(str(m)))
+			
+		elif msg.get_amType() == SerialMessage.AM_TYPE:
+			m = SerialMessage.SerialMessage(msg.dataGet())
+			self.logger.info("SerialMessage: {}".format(str(m)))
+			self.receivedSerialMessages.append(m)
 	
-	def transmit(self, dest, addr, amType, group, msg):
-		self.logger.info("Transmitting: ")
-		self.mif.sendMsg(dest, addr, amType, group, msg)
+	def transmit(self, addr, amType, group, msg):
+		self.logger.info("Transmitting: {}, {}, {}, {}".format(addr, amType, group, msg))
+		self.mif.sendMsg(self.tos_source, addr, amType, group, msg)
 	
 	def run(self):
-		pass
+		while(1):
+			time.sleep(10);
+			pass
 	
 	def __repr__(self):
 		return self.__str__()

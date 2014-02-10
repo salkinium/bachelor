@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 import logging
-from multiprocessing import Process
+from multiprocessing import Process, Value, Array
 import serial
 
 class TemperatureControl(Process, object):
@@ -40,31 +40,43 @@ class TemperatureControl(Process, object):
 		except:
 			self.logger.critical("unable to open device '{}'".format(device))
 		
-		self.temperatures = []
+		self.temperatures = Array('f', range(5))
+		self.temperatureLength = Value('i', 0)
+		self.target = 0;
 		self.logger.info("listening")
 		self.start()
 	
 	@property
 	def temperature(self):
-		if len(self.temperatures):
-			return sum(self.temperatures) / float(len(self.temperatures))
+		if self.temperatureLength.value > 0:
+			return sum(self.temperatures) / float(self.temperatureLength.value)
 		
 		return 0
 	
 	@temperature.setter
 	def temperature(self, value):
 		try:
-			self.port.write("%sC" % str(int(value)))
+			self.port.write("{}C".format(int(value)))
+			self.target = int(value);
 		except:
-			self.logger.error('unable to send temperature')
+			self.logger.error('Unable to send value: {}'.format(value))
+	
+	def targetReached(self):
+		if (self.target-2 <= self.temperature <= self.target+5):
+			return True
+		return False
 	
 	def run(self):
 		while(True):
-			line = self.port.readline()[:-1]
+			line = self.port.readline().strip('\n')
 			if line.startswith("T:"):
 				temps = line[3:].translate(None, " C,").split('\t')
-				self.temperatures = [float(t) for t in temps]
-				self.logger.debug("temperature={}".format(self.temperature))
+				self.temperatureLength.value = len(temps)
+				for ii in range(5):
+					self.temperatures[ii] = 0
+				for ii in range(self.temperatureLength.value):
+					self.temperatures[ii] = float(temps[ii])
+				self.logger.debug("temperature={}".format([float(t) for t in temps]))
 			elif line.startswith('Info:'):
 				self.logger.info(line.replace('Info:  ', ''))
 			else:
