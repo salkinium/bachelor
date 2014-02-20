@@ -139,39 +139,52 @@ class BoxManager(Process, object):
 			while(not all(box.airTemperatureTargetReached() for box in self.boxes)):
 				pass
 			
-			args = {'timeout': 5, 'power': 7, 'data': [], 'repeat': 1, 'period': 1}
+			args = {'timeout': 5, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': None}
 			args.update(arguments)
-			if not all(key in args for key in ('from', 'to', 'power', 'data', 'repeat', 'period', 'timeout')):
+			if not all(key in args for key in ('from', 'to', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts')):
 				self.logger.error("Command '{}' is incomplete: '{}'".format(type, args))
 				return False
 			
-			sender = self.retrieveBox(args['from'])
+			fromId = args['from']
+			toId = args['to']
+			
+			sender = senderOrig = self.retrieveBox(fromId)
 			if not sender:
-				self.logger.error("Sender '{}' not found!".format(args['box']))
+				self.logger.error("Sender '{}' not found!".format(fromId))
 				return False
 			
-			receiver = self.retrieveBox(args['to'])
+			receiver = receiverOrig = self.retrieveBox(toId)
 			if not receiver:
-				self.logger.error("Receiver '{}' not found!".format(args['box']))
+				self.logger.error("Receiver '{}' not found!".format(toId))
 				return False
-			
 			
 			tx = SerialMessage.SerialMessage()
 			tx.set_header_channel(26)
 			tx.set_header_type(SerialMessage.SerialMessage.get_amType())
 			tx.set_header_power(args['power'])
 			tx.set_header_len(len(args['data']))
-			tx.set_header_nodeid(args['from'])
 			tx.set_data(args['data'])
 			self.logger.debug("Created message: {}".format(tx))
 			
+			reversedMessageFlow = False
+			bursts = args['bursts']
+			bursts = bursts - 1 if (bursts and bursts > 0) else None
+			
 			while(args['repeat']):
-				self.logger.debug("Sending message from '{}' to '{}'.".format(args['from'], args['to']))
+				
+				if (args['bursts'] and reversedMessageFlow):
+					sender = receiverOrig
+					receiver = senderOrig
+				else:
+					sender = senderOrig
+					receiver = receiverOrig
 				
 				sender.moteControl.purgeReceiveBuffer()
 				receiver.moteControl.purgeReceiveBuffer()
 				
-				sender.transmit(args['to'], tx)
+				tx.set_header_nodeid(sender.id)
+				self.logger.debug("Sending message from '{}' to '{}'.".format(sender.id, receiver.id))
+				sender.transmit(receiver.id, tx)
 				
 				if self.sendingTimeoutTimer:
 					self.sendingTimeoutTimer.cancel()
@@ -198,7 +211,14 @@ class BoxManager(Process, object):
 						xor = [ord(txData[ii]) ^ ord(rxData[ii]) for ii in range(len(txData))]
 						self.logger.warning("Corrupted paylaod: {}".format(xor))
 				
-				args['repeat'] = args['repeat'] - 1
+				if (args['bursts']):
+					if (bursts > 0):
+						bursts -= 1
+					else:
+						reversedMessageFlow = not reversedMessageFlow
+						bursts = args['bursts'] - 1
+				
+				args['repeat'] -= 1
 				
 				if args['repeat'] > 0:
 					# wait to send again
@@ -234,7 +254,7 @@ class BoxManager(Process, object):
 			try:
 				args = {arg.split('=')[0]: arg.split('=')[1] for arg in nline.split('\t')}
 				for key in args:
-					if key in ['power', 'timeout', 'repeat', 'from', 'to']:
+					if key in ['power', 'timeout', 'repeat', 'from', 'to', 'bursts']:
 						args[key] = int(args[key])
 					if key in ['period']:
 						args[key] = float(args[key])
