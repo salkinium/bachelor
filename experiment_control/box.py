@@ -51,8 +51,8 @@ class Box(object):
 		
 	
 	def _reportEnvironment(self):
-		self.logger.info("Environment: Tair={:.1f}C Tmote={:.1f}C Hmote={:.1f}%" \
-							.format(self.airTemperature, self.moteTemperature, self.moteHumidity))
+		self.logger.info("Environment: Tair={:.1f}C Tmote={:.1f}C Hmote={:.1f}% Tpower={}" \
+			.format(self.airTemperature, self.moteTemperature, self.moteHumidity, self.temperatureControl.power))
 		return True
 	
 	def _temperatureTimeoutExpired(self):

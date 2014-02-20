@@ -42,7 +42,8 @@ class TemperatureControl(Process, object):
 		
 		self.temperatures = Array('f', range(5))
 		self.temperatureLength = Value('i', 0)
-		self.target = 0;
+		self.heaterPower = Value('i', 0)
+		self.target = 0
 		self.logger.info("listening")
 		self.start()
 	
@@ -52,6 +53,10 @@ class TemperatureControl(Process, object):
 			return sum(self.temperatures) / float(self.temperatureLength.value)
 		
 		return 0
+	
+	@property
+	def power(self):
+		return self.heaterPower.value
 	
 	@temperature.setter
 	def temperature(self, value):
@@ -77,8 +82,9 @@ class TemperatureControl(Process, object):
 				for ii in range(self.temperatureLength.value):
 					self.temperatures[ii] = float(temps[ii])
 				self.logger.debug("temperature={}".format([float(t) for t in temps]))
-# 			elif line.startswith('Info:'):
-# 				self.logger.info(line.replace('Info:  ', ''))
+			elif line.startswith("P:"):
+				self.heaterPower.value = int(line[3:])
+				self.logger.debug("power={}".format(self.heaterPower.value))
 			elif line != "":
 				self.logger.warn("unknown input '{}'".format(line))
 	

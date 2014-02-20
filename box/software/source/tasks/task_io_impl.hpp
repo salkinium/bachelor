@@ -51,6 +51,8 @@ task::IO::update()
 				}
 			}
 			stream << xpcc::endl;
+
+			stream << "P: " << heater.getPower() << xpcc::endl;
 		}
 
 		if (Uart::read(uartData))
