@@ -77,9 +77,9 @@ class TemperatureControl(Process, object):
 				for ii in range(self.temperatureLength.value):
 					self.temperatures[ii] = float(temps[ii])
 				self.logger.debug("temperature={}".format([float(t) for t in temps]))
-			elif line.startswith('Info:'):
-				self.logger.info(line.replace('Info:  ', ''))
-			else:
+# 			elif line.startswith('Info:'):
+# 				self.logger.info(line.replace('Info:  ', ''))
+			elif line != "":
 				self.logger.warn("unknown input '{}'".format(line))
 	
 	def __repr__(self):

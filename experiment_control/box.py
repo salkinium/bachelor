@@ -83,8 +83,8 @@ class Box(object):
 # 		if timeout:
 # 			self.temperatureTimeoutTimer = Timer(timeout, self._temperatureTimeoutExpired)
 	
-	def transmit(self, addr, amType, group, msg):
-		self.moteControl.transmit(addr, amType, group, msg)
+	def transmit(self, addr, msg):
+		self.moteControl.transmit(addr, msg)
 	
 	def __repr__(self):
 		return self.__str__()

@@ -80,18 +80,17 @@ class MoteControl(Process, object):
 			self.logger.debug("SensorMessage: NodeId={}, Temp={:.1f}C, Hum={:.1f}%" \
 							.format(m.get_nodeid(), self.temperature, self.humidity))
 			
-		elif msg.get_amType() == RadioMessage.AM_TYPE:
-			m = RadioMessage.RadioMessage(msg.dataGet())
-			self.logger.info("RadioMessage: {}".format(str(m)))
-			
 		elif msg.get_amType() == SerialMessage.AM_TYPE:
 			m = SerialMessage.SerialMessage(msg.dataGet())
 			self.logger.info("SerialMessage: {}".format(str(m)))
 			self.receivedSerialMessages.append(m)
+		
+		else:
+			self.logger.warn("Unknown Message: {}".format(str(m)))
 	
-	def transmit(self, addr, amType, group, msg):
-		self.logger.info("Transmitting: {}, {}, {}, {}".format(addr, amType, group, msg))
-		self.mif.sendMsg(self.tos_source, addr, amType, group, msg)
+	def transmit(self, addr, msg):
+		self.logger.info("Transmitting: {}, {}".format(addr, msg))
+		self.mif.sendMsg(self.tos_source, addr, msg.get_amType(), 0, msg)
 	
 	def run(self):
 		while(1):

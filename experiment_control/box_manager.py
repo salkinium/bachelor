@@ -47,7 +47,7 @@ class BoxManager(Process, object):
 		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 		# console logging
 		ch = logging.StreamHandler()
-		ch.setLevel(logging.WARNING)
+		ch.setLevel(logging.DEBUG)
 		ch.setFormatter(formatter)
 		self.logger.addHandler(ch)
 		
@@ -155,36 +155,54 @@ class BoxManager(Process, object):
 				self.logger.error("Receiver '{}' not found!".format(args['box']))
 				return False
 			
-			tx = SerialMessage(args['data'], args['to'], None, 0, len(args['data']))
+			
+			tx = SerialMessage.SerialMessage()
 			tx.set_header_channel(26)
-			tx.set_header_power(7)
+			tx.set_header_type(SerialMessage.SerialMessage.get_amType())
+			tx.set_header_power(args['power'])
+			tx.set_header_len(len(args['data']))
+			tx.set_header_nodeid(args['from'])
+			tx.set_data(args['data'])
 			self.logger.debug("Created message: {}".format(tx))
 			
 			while(args['repeat']):
 				self.logger.debug("Sending message from '{}' to '{}'.".format(args['from'], args['to']))
 				
-				receiver.purgeReceiveBuffer()
-				sender.transmit(args['to'], message.get_amType(), 0, tx)
+				sender.moteControl.purgeReceiveBuffer()
+				receiver.moteControl.purgeReceiveBuffer()
+				
+				sender.transmit(args['to'], tx)
 				
 				if self.sendingTimeoutTimer:
 					self.sendingTimeoutTimer.cancel()
 				self.sendingTimeoutExpired.value = False
 				self.sendingTimeoutTimer = Timer(args['timeout'], self._sendingTimeoutExpired)
 				
-				while(receiver.receiveBufferEmpty() and not self.sendingTimeoutExpired.value):
+				while( (sender.moteControl.receiveBufferEmpty() or receiver.moteControl.receiveBufferEmpty() ) and \
+					not self.sendingTimeoutExpired.value):
 					pass
 				
-				rx = receiver.getReceivedMessage()
+				txConfirmation = sender.moteControl.getReceivedMessage()
+				rx = receiver.moteControl.getReceivedMessage()
 				
-				if self.sendingTimeoutExpired.value or not rxMessage:
-					self.logger.warning("Message reception timed out on repeat {}".format(args[repeat]))
+				if self.sendingTimeoutExpired.value or not rx or not txConfirmation:
+					self.logger.warning("Message reception timed out on repeat {}".format(args['repeat']))
 				else:
-					self.logger.debug("Received Message: {}".format(rxMessage))
-					if tx.data != rx.data:
-						xor = [tx.data[ii] ^ rx.data[ii] for ii in range(len(tx.data))]
+					self.logger.debug("Received Message: {}".format(rx))
+					# man are these numbers arbitrary
+					txLength = txConfirmation.get_header_len()
+					txData = txConfirmation.data[22:-(100-txLength)]
+					rxData = rx.data[22:-(100-txLength)]
+					
+					if txData != rxData:
+						xor = [ord(txData[ii]) ^ ord(rxData[ii]) for ii in range(len(txData))]
 						self.logger.warning("Corrupted paylaod: {}".format(xor))
 				
-				args[repeat] = args[repeat] - 1
+				args['repeat'] = args['repeat'] - 1
+				
+				if args['repeat'] > 0:
+					# wait to send again
+					time.sleep(args['period'])
 			
 			return True
 		
@@ -221,8 +239,8 @@ class BoxManager(Process, object):
 					if key in ['period']:
 						args[key] = float(args[key])
 					if key in ['data']:
-						charArray = list(args[key])
-						args[key] = [int(char) for char in charArray]
+						string = args[key].decode("hex")
+						args[key] = map(ord, string)
 				
 				return self.ParserLineType.MESSAGE, args
 			except:
