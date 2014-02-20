@@ -64,7 +64,7 @@ class Box(object):
 	
 	@property
 	def moteTemperature(self):
-		return self.moteControl.temperature
+		return self.moteControl.temperature - 4
 	
 	@property
 	def moteHumidity(self):

@@ -56,6 +56,17 @@ class BoxManager(Process, object):
 		fh.setLevel(logging.DEBUG)
 		fh.setFormatter(formatter)
 		self.logger.addHandler(fh)
+		
+		# results logger
+		self.results = logging.getLogger('ExperimentResults')
+		self.results.setLevel(logging.DEBUG)
+		xformatter = logging.Formatter('timestamp=%(asctime)s\t%(message)s')
+		# file handler
+		xh = logging.FileHandler(os.path.join(self.logPath,'experiment.log'))
+		xh.setLevel(logging.INFO)
+		xh.setFormatter(xformatter)
+		self.results.addHandler(xh)
+		
 		self.script = None
 		self.sendingTimeoutTimer = None
 		self.sendingTimeoutExpired = Value('b', False)
@@ -183,7 +194,7 @@ class BoxManager(Process, object):
 				receiver.moteControl.purgeReceiveBuffer()
 				
 				tx.set_header_nodeid(sender.id)
-				self.logger.debug("Sending message from '{}' to '{}'.".format(sender.id, receiver.id))
+				#self.logger.debug("Sending message from '{}' to '{}'.".format(sender.id, receiver.id))
 				sender.transmit(receiver.id, tx)
 				
 				if self.sendingTimeoutTimer:
@@ -201,15 +212,33 @@ class BoxManager(Process, object):
 				if self.sendingTimeoutExpired.value or not rx or not txConfirmation:
 					self.logger.warning("Message reception timed out on repeat {}".format(args['repeat']))
 				else:
-					self.logger.debug("Received Message: {}".format(rx))
-					# man are these numbers arbitrary
-					txLength = txConfirmation.get_header_len()
-					txData = txConfirmation.data[22:-(100-txLength)]
-					rxData = rx.data[22:-(100-txLength)]
+					#self.logger.debug("Received Message: {}".format(rx))
 					
-					if txData != rxData:
-						xor = [ord(txData[ii]) ^ ord(rxData[ii]) for ii in range(len(txData))]
-						self.logger.warning("Corrupted paylaod: {}".format(xor))
+					reportableMessage, values = self.evaluateMessages(tx, rx)
+					if not values['crc']:
+						self.logger.warning("Corrupted paylaod: {}".format(values['xor']))
+					
+					values.update({'from': sender.id, 'to': receiver.id,
+									'temperatureFrom': sender.moteTemperature,
+									'temperatureTo': receiver.moteTemperature})
+					
+					values['xor'] = ["0x%x" % b for b in values['xor']]
+					values['data'] = ["0x%x" % b for b in values['data']]
+					
+					resultString = ""
+					resultString += "power={}\t"	.format(values['power'])
+					resultString += "rssi={}\t"		.format(values['rssi'])
+					resultString += "lqi={}\t"		.format(values['lqi'])
+					resultString += "crc={}\t"		.format(values['crc'])
+					resultString += "errors={}\t"	.format(values['errors'])
+					resultString += "from={}\t"		.format(values['from'])
+					resultString += "to={}\t"		.format(values['to'])
+					resultString += "fromT={}\t"	.format(values['temperatureFrom'])
+					resultString += "toT={}\t"		.format(values['temperatureTo'])
+					resultString += "data={}\t"		.format(" ".join(values['data']))
+					resultString += "xor={}\t"		.format(" ".join(values['xor']))
+					
+					self.results.info(resultString)
 				
 				if (args['bursts']):
 					if (bursts > 0):
@@ -227,6 +256,33 @@ class BoxManager(Process, object):
 			return True
 		
 		return False
+	
+	def evaluateMessages(self, tx, rx):
+		# man are these numbers arbitrary
+		txLength = tx.get_header_len()
+		rxLength = rx.get_header_len()
+		txData = tx.data[22:-(100-txLength)]
+		rxData = rx.data[22:-(100-rxLength)]
+		rxMetadata = [rx.getElement_header_metadata(0), rx.getElement_header_metadata(1)]
+		
+		data = map(ord, txData)
+		xor = [ord(txData[ii]) ^ ord(rxData[ii]) for ii in range(min(len(txData), len(rxData)))]
+		errors = len(xor) - xor.count(0)
+		crc = rxMetadata[1] >> 7
+		lqi = rxMetadata[1] & 0x7f
+		rssi = struct.unpack('>b', chr(rxMetadata[0]))[0]
+		power = tx.get_header_power()
+		
+		dict = {'data': data,
+				'xor': xor,
+				'errors': errors,
+				'crc': crc,
+				'lqi': lqi,
+				'rssi': rssi,
+				'power': power}
+		
+		return True, dict
+		
 	
 	def _sendingTimeoutExpired(self):
 		self.sendingTimeoutExpired.value = True
