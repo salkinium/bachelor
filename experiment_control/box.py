@@ -47,7 +47,7 @@ class Box(object):
 		self.environmentTimer = PeriodicTimer(10, self._reportEnvironment)
 		self.environmentTimer.start()
 		self.temperatureTimeoutTimer = None
-		self.temperatureTimeoutExpired = Value('b', False)
+		self.temperatureTimeoutExpired = Value('b', True)
 		
 	
 	def _reportEnvironment(self):
@@ -78,10 +78,11 @@ class Box(object):
 		self.temperatureControl.temperature = value
 		# set-up the timeout
 		self.temperatureTimeoutExpired.value = False
-# 		if self.temperatureTimeoutTimer:
-# 			self.temperatureTimeoutTimer.cancel()
-# 		if timeout:
-# 			self.temperatureTimeoutTimer = Timer(timeout, self._temperatureTimeoutExpired)
+		if self.temperatureTimeoutTimer:
+			self.temperatureTimeoutTimer.cancel()
+		if timeout:
+			self.temperatureTimeoutTimer = Timer(timeout, self._temperatureTimeoutExpired)
+			self.temperatureTimeoutTimer.start()
 	
 	def transmit(self, addr, msg):
 		self.moteControl.transmit(addr, msg)

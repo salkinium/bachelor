@@ -46,10 +46,10 @@ class BoxManager(Process, object):
 		self.logger.setLevel(logging.DEBUG)
 		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 		# console logging
-		ch = logging.StreamHandler()
-		ch.setLevel(logging.DEBUG)
-		ch.setFormatter(formatter)
-		self.logger.addHandler(ch)
+		self.ch = logging.StreamHandler()
+		self.ch.setLevel(logging.DEBUG)
+		self.ch.setFormatter(formatter)
+		self.logger.addHandler(self.ch)
 		
 		# file logging
 		fh = logging.FileHandler(os.path.join(self.logPath,'boxmanager.log'))
@@ -60,7 +60,7 @@ class BoxManager(Process, object):
 		# results logger
 		self.results = logging.getLogger('ExperimentResults')
 		self.results.setLevel(logging.DEBUG)
-		self.results.addHandler(ch)
+		self.results.addHandler(self.ch)
 		
 		self.script = None
 		self.scripts = []
@@ -114,6 +114,7 @@ class BoxManager(Process, object):
 		xh.setFormatter(xformatter)
 		self.results.handlers = []
 		self.results.addHandler(xh)
+		self.results.addHandler(self.ch)
 		
 		self.logger.info("Executing script: {}".format(script.name))
 
@@ -172,7 +173,7 @@ class BoxManager(Process, object):
 			while(not all(box.airTemperatureTargetReached() for box in self.boxes)):
 				pass
 			
-			args = {'timeout': 5, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': None}
+			args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': None}
 			args.update(arguments)
 			if not all(key in args for key in ('from', 'to', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts')):
 				self.logger.error("Command '{}' is incomplete: '{}'".format(type, args))
@@ -202,8 +203,9 @@ class BoxManager(Process, object):
 			reversedMessageFlow = False
 			bursts = args['bursts']
 			bursts = bursts - 1 if (bursts and bursts > 0) else None
+			repeats = args['repeat']
 			
-			while(args['repeat']):
+			while(repeats):
 				
 				if (args['bursts'] and reversedMessageFlow):
 					sender = receiverOrig
@@ -223,16 +225,17 @@ class BoxManager(Process, object):
 					self.sendingTimeoutTimer.cancel()
 				self.sendingTimeoutExpired.value = False
 				self.sendingTimeoutTimer = Timer(args['timeout'], self._sendingTimeoutExpired)
+				self.sendingTimeoutTimer.start()
 				
-				while( (sender.moteControl.receiveBufferEmpty() or receiver.moteControl.receiveBufferEmpty() ) and \
-					not self.sendingTimeoutExpired.value):
+				while( not self.sendingTimeoutExpired.value and \
+					(sender.moteControl.receiveBufferEmpty() or receiver.moteControl.receiveBufferEmpty() )):
 					pass
 				
 				txConfirmation = sender.moteControl.getReceivedMessage()
 				rx = receiver.moteControl.getReceivedMessage()
 				
 				if self.sendingTimeoutExpired.value or not rx or not txConfirmation:
-					self.logger.warning("Message reception timed out on repeat {}".format(args['repeat']))
+					self.logger.warning("Message reception timed out on repeat {}".format(args['repeat']-repeats))
 				else:
 					#self.logger.debug("Received Message: {}".format(rx))
 					
@@ -269,9 +272,9 @@ class BoxManager(Process, object):
 						reversedMessageFlow = not reversedMessageFlow
 						bursts = args['bursts'] - 1
 				
-				args['repeat'] -= 1
+				repeats -= 1
 				
-				if args['repeat'] > 0:
+				if repeats:
 					# wait to send again
 					time.sleep(args['period'])
 			
