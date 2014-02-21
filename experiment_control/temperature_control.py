@@ -85,6 +85,8 @@ class TemperatureControl(Process, object):
 			elif line.startswith("P:"):
 				self.heaterPower.value = int(line[3:])
 				self.logger.debug("power={}".format(self.heaterPower.value))
+			elif line.startswith("Info:"):
+				continue
 			elif line != "":
 				self.logger.warn("unknown input '{}'".format(line))
 	

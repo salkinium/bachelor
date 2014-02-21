@@ -60,14 +60,10 @@ class BoxManager(Process, object):
 		# results logger
 		self.results = logging.getLogger('ExperimentResults')
 		self.results.setLevel(logging.DEBUG)
-		xformatter = logging.Formatter('timestamp=%(asctime)s\t%(message)s')
-		# file handler
-		xh = logging.FileHandler(os.path.join(self.logPath,'experiment.log'))
-		xh.setLevel(logging.INFO)
-		xh.setFormatter(xformatter)
-		self.results.addHandler(xh)
+		self.results.addHandler(ch)
 		
 		self.script = None
+		self.scripts = []
 		self.sendingTimeoutTimer = None
 		self.sendingTimeoutExpired = Value('b', False)
 		
@@ -99,25 +95,51 @@ class BoxManager(Process, object):
 		if os.path.exists(scriptFile):
 			self.logger.info("Adding script file: {}".format(scriptFile))
 			try:
-				self.script = open(scriptFile, 'r')
+				file = open(scriptFile, 'r')
+				self.scripts.append(file)
+				if not self.script:
+					self._setActiveScript(self.scripts.pop(0))
 			except:
 				self.logger.error("Unable to open script file!")
 		else:
 			self.logger.error("Script file does not exist! {}".format(scriptFile))
+
+	def _setActiveScript(self, script):
+		self.terminateScript()
+		self.script = script
+		# file handler
+		xh = logging.FileHandler(os.path.join(self.logPath, os.path.splitext(os.path.basename(self.script.name))[0] + '-experiment.log'))
+		xh.setLevel(logging.INFO)
+		xformatter = logging.Formatter('timestamp=%(asctime)s\t%(message)s')
+		xh.setFormatter(xformatter)
+		self.results.handlers = []
+		self.results.addHandler(xh)
+		
+		self.logger.info("Executing script: {}".format(script.name))
 
 	def terminateScript(self):
 		if self.script:
 			self.script.close()
 		self.script = None
 	
+	def isIdle(self):
+		return len(self.scripts) == 0 and self.script == None
+	
 	def run(self):
 		while(True):
 			if self.script:
 				line = self.script.readline()
+				if line == '':
+					self.terminateScript()
+					break
 				type, args = self.parseScriptLine(line)
 				success = self.actionScriptLine(type, args)
 				if not success:
-					self.script = None
+					self.terminateScript()
+			elif len(self.scripts):
+				self._setActiveScript(self.scripts.pop(0))
+			else:
+				self.terminateScript()
 	
 	def actionScriptLine(self, type, arguments):
 		if type == self.ParserLineType.IGNORE:
@@ -233,8 +255,8 @@ class BoxManager(Process, object):
 					resultString += "errors={}\t"	.format(values['errors'])
 					resultString += "from={}\t"		.format(values['from'])
 					resultString += "to={}\t"		.format(values['to'])
-					resultString += "fromT={}\t"	.format(values['temperatureFrom'])
-					resultString += "toT={}\t"		.format(values['temperatureTo'])
+					resultString += "fromT={:.1f}\t".format(values['temperatureFrom'])
+					resultString += "toT={:.1f}\t"	.format(values['temperatureTo'])
 					resultString += "data={}\t"		.format(" ".join(values['data']))
 					resultString += "xor={}\t"		.format(" ".join(values['xor']))
 					

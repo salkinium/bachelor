@@ -19,9 +19,15 @@ if __name__ == "__main__":
     manager = BoxManager()
     manager.addBox(0, "/dev/ttyUSB3:telos", "/dev/ttyUSB0")
     manager.addBox(1, "/dev/ttyUSB1:telos", "/dev/ttyUSB2")
-    if len(sys.argv) > 1:
-        manager.addScript(sys.argv[1])
+    for arg in sys.argv[1:]:
+        manager.addScript(arg)
     
     while(1):
     	manager.run()
-        pass
+        if manager.isIdle():
+        	# turn off all the heating elements
+        	for box in manager.boxes:
+        		box.setAirTemperature(0)
+        	# force quit of all threads
+        	print "Terminating..."
+        	os._exit(1)
