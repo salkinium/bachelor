@@ -52,11 +52,16 @@ class MoteControl(Process, object):
 		self.mif.addListener(self, SensorMessage.SensorMessage)
 		self.logger.info("listening")
 		
-		self.temperature = 0
+		self._temperature = 0
 		self.humidity = 0
 		self.receivedSerialMessages = []
+		self.temperatureCorrection = 0
 		
 		#self.start()
+	
+	@property
+	def temperature(self):
+		return self._temperature + self.temperatureCorrection
 	
 	def purgeReceiveBuffer(self):
 		self.receivedSerialMessages = []
@@ -73,7 +78,7 @@ class MoteControl(Process, object):
 	def receive(self, src, msg):
 		if msg.get_amType() == SensorMessage.AM_TYPE:
 			m = SensorMessage.SensorMessage(msg.dataGet())
-			self.temperature = m.get_temperature()*0.01 - 40.1
+			self._temperature = m.get_temperature()*0.01 - 40.1
 			linear_humidity = -2.0468 + 0.0367 * m.get_humidity() + (-1.5955e-6 * m.get_humidity())**2
 			self.humidity = (self.temperature - 25) * (0.01 + 0.00008 * m.get_humidity()) + linear_humidity
 			

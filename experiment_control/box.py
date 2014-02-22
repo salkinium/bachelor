@@ -51,7 +51,7 @@ class Box(object):
 		
 	
 	def _reportEnvironment(self):
-		self.logger.info("Environment: Tair={:.1f}C Tmote={:.1f}C Hmote={:.1f}% Tpower={}" \
+		self.logger.info("Environment: Tair={:.1f}C Tmote={:.1f}C Hmote={:.1f}% Tpower={}%" \
 			.format(self.airTemperature, self.moteTemperature, self.moteHumidity, self.temperatureControl.power))
 		return True
 	
@@ -64,14 +64,15 @@ class Box(object):
 	
 	@property
 	def moteTemperature(self):
-		return self.moteControl.temperature - 4
+		return self.moteControl.temperature
 	
 	@property
 	def moteHumidity(self):
 		return self.moteControl.humidity
 	
 	def airTemperatureTargetReached(self):
-		return self.temperatureControl.targetReached() or self.temperatureTimeoutExpired.value
+		return (self.temperatureControl.targetReached(self.moteTemperature)) \
+			or self.temperatureTimeoutExpired.value
 	
 	def setAirTemperature(self, value, timeout=None):
 		self.logger.info("Setting air temperature to {}C".format(value))

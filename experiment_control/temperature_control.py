@@ -66,8 +66,10 @@ class TemperatureControl(Process, object):
 		except:
 			self.logger.error('Unable to send value: {}'.format(value))
 	
-	def targetReached(self):
-		if (self.target-2 <= self.temperature <= self.target+5):
+	def targetReached(self, moteTemperature):
+		delta = 1.5
+		if (self.target - delta <= self.temperature <= self.target + delta and \
+			self.target - delta <= moteTemperature  <= self.target + delta):
 			return True
 		return False
 	

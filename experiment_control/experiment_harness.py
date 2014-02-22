@@ -17,8 +17,8 @@ from box_manager import BoxManager
 if __name__ == "__main__":
 
     manager = BoxManager()
-    manager.addBox(0, "/dev/ttyUSB2:telos", "/dev/ttyUSB0")
-    manager.addBox(1, "/dev/ttyUSB1:telos", "/dev/ttyUSB3")
+    manager.addBox(0, "/dev/ttyUSB2:telos", "/dev/ttyUSB0", -2)
+    manager.addBox(1, "/dev/ttyUSB1:telos", "/dev/ttyUSB3", -2)
     for arg in sys.argv[1:]:
         manager.addScript(arg)
     

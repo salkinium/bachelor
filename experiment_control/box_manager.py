@@ -69,10 +69,11 @@ class BoxManager(Process, object):
 		
 # 		self.start()
 	
-	def addBox(self, id, mote, temperature):
+	def addBox(self, id, mote, temperature, correction):
 		if id not in [box.id for box in self.boxes]:
-			self.logger.info("Adding box: id={} mote={} temperature={}".format(id, mote, temperature))
+			self.logger.info("Adding box: id={} mote={} temperature={} correction={}".format(id, mote, temperature, correction))
 			box = Box(id, mote, temperature, self.logPath)
+			box.moteControl.temperatureCorrection = correction
 			self.boxes.append(box)
 		else:
 			self.logger.error("Box with id={} already present!".format(id))
