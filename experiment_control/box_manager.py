@@ -9,7 +9,7 @@
 import logging
 from multiprocessing import Process
 
-import os, sys, time
+import os, sys, time, random
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tinyos', 'support', 'sdk', 'python'))
 
 from multiprocessing import Process, Value
@@ -240,7 +240,7 @@ class BoxManager(Process, object):
 				else:
 					#self.logger.debug("Received Message: {}".format(rx))
 					
-					reportableMessage, values = self.evaluateMessages(tx, rx)
+					reportableMessage, values = self.evaluateMessages(txConfirmation, rx)
 					if not values['crc']:
 						self.logger.warning("Corrupted paylaod: {}".format(values['xor']))
 					
@@ -293,10 +293,12 @@ class BoxManager(Process, object):
 		
 		data = map(ord, txData)
 		xor = [ord(txData[ii]) ^ ord(rxData[ii]) for ii in range(min(len(txData), len(rxData)))]
-		errors = len(xor) - xor.count(0)
+		xor_bits = map((lambda d: bin(d).count("1")), xor)
+		errors = sum(xor_bits)
+		
 		crc = rxMetadata[1] >> 7
 		lqi = rxMetadata[1] & 0x7f
-		rssi = struct.unpack('>b', chr(rxMetadata[0]))[0]
+		rssi = struct.unpack('>b', chr(rxMetadata[0]))[0] - 45
 		power = tx.get_header_power()
 		
 		dict = {'data': data,
@@ -341,8 +343,12 @@ class BoxManager(Process, object):
 					if key in ['period']:
 						args[key] = float(args[key])
 					if key in ['data']:
-						string = args[key].decode("hex")
-						args[key] = map(ord, string)
+						if args[key].startswith("random("):
+							number = int(args[key][7:-1])
+							args[key] = [random.randint(0,255) for r in xrange(number)]
+						else:
+							string = args[key].decode("hex")
+							args[key] = map(ord, string)
 				
 				return self.ParserLineType.MESSAGE, args
 			except:
