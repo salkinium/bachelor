@@ -174,7 +174,7 @@ class BoxManager(Process, object):
 			while(not all(box.airTemperatureTargetReached() for box in self.boxes)):
 				pass
 			
-			args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': None}
+			args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': None, 'randomize': False}
 			args.update(arguments)
 			if not all(key in args for key in ('from', 'to', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts')):
 				self.logger.error("Command '{}' is incomplete: '{}'".format(type, args))
@@ -276,6 +276,9 @@ class BoxManager(Process, object):
 				repeats -= 1
 				
 				if repeats:
+					if (args['randomize']):
+						# randomize payload
+						tx.set_data([random.randint(0,255) for r in xrange(len(args['data']))])
 					# wait to send again
 					time.sleep(args['period'])
 			
@@ -337,6 +340,7 @@ class BoxManager(Process, object):
 			nline = line.replace('send message:\t', '')
 			try:
 				args = {arg.split('=')[0]: arg.split('=')[1] for arg in nline.split('\t')}
+				args['randomize'] = False
 				for key in args:
 					if key in ['power', 'timeout', 'repeat', 'from', 'to', 'bursts']:
 						args[key] = int(args[key])
@@ -346,6 +350,7 @@ class BoxManager(Process, object):
 						if args[key].startswith("random("):
 							number = int(args[key][7:-1])
 							args[key] = [random.randint(0,255) for r in xrange(number)]
+							args['randomize'] = True
 						else:
 							string = args[key].decode("hex")
 							args[key] = map(ord, string)
