@@ -11,8 +11,8 @@ from link import Link
 import dateutil.parser
 
 
-class StringLink(Link):
-    """ NewStringLink
+class OldStringLink(Link):
+    """ OldStringLink
     Parses a string and generates a link class
     """
 
@@ -20,24 +20,18 @@ class StringLink(Link):
         Link.__init__(self, None)
 
         if string:
-            string = string.replace('\n', '')
+            self['string'] = string
             for item in string.split('\t'):
                 items = item.split('=')
-                if len(items) >= 2:
-                    self.properties[items[0]] = items[1]
+                self.properties[items[0]] = items[1]
 
         for p in self.properties:
-            if p in ['power', 'lqi', 'rssi', 'errors', 'from', 'to']:
+            if p in ['power', 'lqi', 'crc', 'rssi', 'errors']:
                 self[p] = int(self[p])
-            elif p in ['crc']:
-                self[p] = self[p]
-            elif p in ['fromT', 'toT']:
-                self[p] = float(self[p])
             elif p in ['timestamp']:
-                self[p] = dateutil.parser.parse(self[p].replace(',', '.'))
-            elif p in ['data', 'xor']:
-                self[p] = bytearray([int(ii, 16) for ii in self[p].split(' ')])
-
+                self[p] = dateutil.parser.parse(self[p])
+            elif p in ['orgdata', 'xor']:
+                self[p] = bytearray([int(ii) for ii in self[p].split(' ')])
 
     def __str__(self):
-        return "NewString" + Link.__str__(self)
+        return "String" + Link.__str__(self)

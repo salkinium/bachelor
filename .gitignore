@@ -2,6 +2,7 @@
 .project
 .pydevproject
 *.pyc
+.idea
 
 box/software/build/
 .sconsign.dblite
