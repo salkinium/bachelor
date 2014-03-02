@@ -367,4 +367,4 @@ class BoxManager(Process, object):
 		return self.__str__()
 
 	def __str__(self):
-		return ("BoxManager( {} )\n".format(len(self.boxes))) \
+		return ("BoxManager( {} )\n".format(len(self.boxes)))

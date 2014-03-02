@@ -36,7 +36,7 @@ class Box(object):
 		
 		# file logging
 		fh = logging.FileHandler(os.path.join(logPath, 'box-{}.log'.format(id)))
-		fh.setLevel(logging.DEBUG)
+		fh.setLevel(logging.INFO)
 		fh.setFormatter(formatter)
 		self.logger.addHandler(fh)
 		

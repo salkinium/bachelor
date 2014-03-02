@@ -40,7 +40,7 @@ class MoteControl(Process, object):
 		# file logging
 		if logFile:
 			fh = logging.FileHandler(logFile)
-			fh.setLevel(logging.DEBUG)
+			fh.setLevel(logging.WARN)
 			fh.setFormatter(formatter)
 			self.logger.addHandler(fh)
 		

@@ -31,7 +31,7 @@ class TemperatureControl(Process, object):
 		# file logging
 		if logFile:
 			fh = logging.FileHandler(logFile)
-			fh.setLevel(logging.DEBUG)
+			fh.setLevel(logging.INFO)
 			fh.setFormatter(formatter)
 			self.logger.addHandler(fh)
 		
@@ -83,10 +83,10 @@ class TemperatureControl(Process, object):
 					self.temperatures[ii] = 0
 				for ii in range(self.temperatureLength.value):
 					self.temperatures[ii] = float(temps[ii])
-				self.logger.debug("temperature={}".format([float(t) for t in temps]))
+				self.logger.info("temperature={}".format([float(t) for t in temps]))
 			elif line.startswith("P:"):
 				self.heaterPower.value = int(line[3:])
-				self.logger.debug("power={}".format(self.heaterPower.value))
+				self.logger.info("power={}".format(self.heaterPower.value))
 			elif line.startswith("Info:"):
 				continue
 			elif line != "":
