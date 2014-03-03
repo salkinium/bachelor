@@ -19,7 +19,7 @@ if __name__ == "__main__":
     for arg in sys.argv[1:]:
         with open(arg, 'r') as linkfile:
             for line in linkfile:
-                if 'crc=0' in line:
+                if 'errors=0' not in line:
                     link = StringLink(line)
                     links.append(link)
 
@@ -33,3 +33,6 @@ if __name__ == "__main__":
 
     lqi_plot = analyzer.create_lqi_plot()
     analyzer.save_plot_to_file(lqi_plot, 'lqi_plot.pdf')
+
+    xor_plot = analyzer.create_xor_plot()
+    analyzer.save_plot_to_file(xor_plot, 'xor_plot.pdf')

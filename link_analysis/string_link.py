@@ -36,7 +36,7 @@ class StringLink(Link):
             elif p in ['timestamp']:
                 self[p] = dateutil.parser.parse(self[p].replace(',', '.'))
             elif p in ['data', 'xor']:
-                self[p] = bytearray([int(ii, 16) for ii in self[p].split(' ')])
+                self[p] = [int(ii, 16) for ii in self[p].split(' ')]
 
 
     def __str__(self):
