@@ -8,10 +8,10 @@
 # -----------------------------------------------------------------------------
 
 
-import os, sys
-import glob
+import sys
 from string_link import StringLink
 from link_analyzer import Analyzer
+
 
 if __name__ == "__main__":
     links = []

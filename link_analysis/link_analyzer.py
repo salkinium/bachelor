@@ -7,11 +7,7 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
-
-import os, sys
-import glob
-
-import matplotlib.pyplot as plt
+import os
 import pylab
 import logging
 

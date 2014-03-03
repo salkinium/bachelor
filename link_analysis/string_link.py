@@ -6,7 +6,6 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
-
 from link import Link
 import dateutil.parser
 
@@ -37,7 +36,6 @@ class StringLink(Link):
                 self[p] = dateutil.parser.parse(self[p].replace(',', '.'))
             elif p in ['data', 'xor']:
                 self[p] = [int(ii, 16) for ii in self[p].split(' ')]
-
 
     def __str__(self):
         return "NewString" + Link.__str__(self)
