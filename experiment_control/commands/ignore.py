@@ -6,6 +6,17 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
-from RadioMessage import RadioMessage
-from SensorMessage import SensorMessage
-from SerialMessage import SerialMessage
+from base import BaseCommand
+
+
+class IgnoreCommand(BaseCommand):
+
+    def __init__(self):
+        super(IgnoreCommand, self).__init__()
+
+    def execute(self, _):
+        # ignores everything and just returns True every time
+        return True
+
+    def __str__(self):
+        return "IgnoreCommand()"

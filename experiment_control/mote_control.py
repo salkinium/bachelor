@@ -7,22 +7,19 @@
 # -----------------------------------------------------------------------------
 
 import logging
-from multiprocessing import Process
 import os
 import sys
-import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tinyos', 'support', 'sdk', 'python'))
 
 from tinyos.message import *
 from tinyos.message.Message import *
 from tinyos.message.SerialPacket import *
-from tinyos.packet.Serial import Serial
 
 from messages import *
 
 
-class MoteControl(Process, object):
+class MoteControl(object):
     """ MoteControl
     Enables communication with the WSN mote in the box.
     """
@@ -49,17 +46,15 @@ class MoteControl(Process, object):
         self.mif = MoteIF.MoteIF()
         self.device = device
         self.tos_source = self.mif.addSource("serial@" + device)
-        self.mif.addListener(self, SerialMessage.SerialMessage)
-        self.mif.addListener(self, RadioMessage.RadioMessage)
-        self.mif.addListener(self, SensorMessage.SensorMessage)
+        self.mif.addListener(self, SerialMessage)
+        self.mif.addListener(self, RadioMessage)
+        self.mif.addListener(self, SensorMessage)
         self.logger.info("listening")
 
         self._temperature = 0
         self.humidity = 0
         self.received_serial_messages = []
         self.temperature_correction = 0
-
-    #self.start()
 
     @property
     def temperature(self):
@@ -78,8 +73,8 @@ class MoteControl(Process, object):
             return None
 
     def receive(self, src, msg):
-        if msg.get_amType() == SensorMessage.AM_TYPE:
-            m = SensorMessage.SensorMessage(msg.dataGet())
+        if msg.get_amType() == SensorMessage.get_amType():
+            m = SensorMessage(msg.dataGet())
             self._temperature = m.get_temperature() * 0.01 - 40.1
             linear_humidity = -2.0468 + 0.0367 * m.get_humidity() + (-1.5955e-6 * m.get_humidity()) ** 2
             self.humidity = (self.temperature - 25) * (0.01 + 0.00008 * m.get_humidity()) + linear_humidity
@@ -87,8 +82,8 @@ class MoteControl(Process, object):
             self.logger.debug("SensorMessage: NodeId={}, Temp={:.1f}C, Hum={:.1f}%"
                               .format(m.get_nodeid(), self.temperature, self.humidity))
 
-        elif msg.get_amType() == SerialMessage.AM_TYPE:
-            m = SerialMessage.SerialMessage(msg.dataGet())
+        elif msg.get_amType() == SerialMessage.get_amType():
+            m = SerialMessage(msg.dataGet())
             self.logger.info("SerialMessage: {}".format(str(m)))
             self.received_serial_messages.append(m)
 
@@ -98,11 +93,6 @@ class MoteControl(Process, object):
     def transmit(self, addr, msg):
         self.logger.info("Transmitting: {}, {}".format(addr, msg))
         self.mif.sendMsg(self.tos_source, addr, msg.get_amType(), 0, msg)
-
-    def run(self):
-        while 1:
-            time.sleep(10)
-            pass
 
     def __repr__(self):
         return self.__str__()

@@ -12,21 +12,24 @@ import os
 import sys
 
 from box_manager import BoxManager
+from script_manager import ScriptManager
 
 
 if __name__ == "__main__":
 
-    manager = BoxManager()
-    manager.add_box(0, "/dev/ttyUSB2:telos", "/dev/ttyUSB0", -2)
-    manager.add_box(1, "/dev/ttyUSB1:telos", "/dev/ttyUSB3", -2)
+    boxmanager = BoxManager()
+    boxmanager.add_box(0, "/dev/ttyUSB2:telos", "/dev/ttyUSB0", -2)
+    boxmanager.add_box(1, "/dev/ttyUSB1:telos", "/dev/ttyUSB3", -2)
+
+    scriptmanager = ScriptManager(boxmanager)
     for arg in sys.argv[1:]:
-        manager.add_script(arg)
+        scriptmanager.add_script(arg)
 
     while True:
-        manager.run()
-        if manager.is_idle():
+        scriptmanager.run()
+        if scriptmanager.is_idle():
             # turn off all the heating elements
-            for box in manager.boxes:
+            for box in boxmanager.boxes:
                 box.set_air_temperature(0)
             # force quit of all threads
             print "Terminating..."

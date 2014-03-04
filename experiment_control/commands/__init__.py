@@ -6,6 +6,7 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
-from RadioMessage import RadioMessage
-from SensorMessage import SensorMessage
-from SerialMessage import SerialMessage
+from ignore import IgnoreCommand
+from message import MessageCommand
+from temperature import TemperatureCommand
+from temperature_reached import TemperatureReachedCommand
