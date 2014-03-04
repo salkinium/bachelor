@@ -23,6 +23,7 @@ from tinyos.packet.Serial import Serial
 
 from messages import *
 from box import Box
+from evaluator import Evaluator
 
 
 def enum(**enums):
@@ -68,8 +69,6 @@ class BoxManager(Process, object):
         self.scripts = []
         self.sending_timeout_timer = None
         self.sending_timeout_expired = Value('b', False)
-
-    # 		self.start()
 
     def add_box(self, identifier, mote, temperature, correction):
         if identifier not in [box.id for box in self.boxes]:
@@ -243,32 +242,11 @@ class BoxManager(Process, object):
                 if self.sending_timeout_expired.value or not rx or not tx_confirmation:
                     self.logger.warning("Message reception timed out on repeat {}".format(args['repeat'] - repeats))
                 else:
-                    #self.logger.debug("Received Message: {}".format(rx))
-
-                    reportable_message, values = self.evaluate_messages(tx_confirmation, rx)
-                    if not values['crc']:
-                        self.logger.warning("Corrupted paylaod: {}".format(values['xor']))
-
-                    values.update({'from': sender.id, 'to': receiver.id,
-                                   'temperatureFrom': sender.mote_temperature,
+                    values = Evaluator.evaluate_messages(tx_confirmation, rx)
+                    values.update({'temperatureFrom': sender.mote_temperature,
                                    'temperatureTo': receiver.mote_temperature})
 
-                    values['xor'] = ["0x%x" % b for b in values['xor']]
-                    values['data'] = ["0x%x" % b for b in values['data']]
-
-                    result_string = ""
-                    result_string += "power={}\t".format(values['power'])
-                    result_string += "rssi={}\t".format(values['rssi'])
-                    result_string += "lqi={}\t".format(values['lqi'])
-                    result_string += "crc={}\t".format(values['crc'])
-                    result_string += "errors={}\t".format(values['errors'])
-                    result_string += "from={}\t".format(values['from'])
-                    result_string += "to={}\t".format(values['to'])
-                    result_string += "fromT={:.1f}\t".format(values['temperatureFrom'])
-                    result_string += "toT={:.1f}\t".format(values['temperatureTo'])
-                    result_string += "data={}\t".format(" ".join(values['data']))
-                    result_string += "xor={}\t".format(" ".join(values['xor']))
-
+                    result_string = Evaluator.format_values(values)
                     self.results.info(result_string)
 
                 if args['bursts']:
@@ -290,36 +268,6 @@ class BoxManager(Process, object):
             return True
 
         return False
-
-    # message evaluation should move to its own class
-    @staticmethod
-    def evaluate_messages(tx, rx):
-        # man are these numbers arbitrary
-        tx_length = tx.get_header_len()
-        rx_length = rx.get_header_len()
-        tx_data = tx.data[22:-(100 - tx_length)]
-        rx_data = rx.data[22:-(100 - rx_length)]
-        rx_metadata = [rx.getElement_header_metadata(0), rx.getElement_header_metadata(1)]
-
-        data = map(ord, tx_data)
-        xor = [ord(tx_data[ii]) ^ ord(rx_data[ii]) for ii in range(min(len(tx_data), len(rx_data)))]
-        xor_bits = map((lambda d: bin(d).count("1")), xor)
-        errors = sum(xor_bits)
-
-        crc = rx_metadata[1] >> 7
-        lqi = rx_metadata[1] & 0x7f
-        rssi = struct.unpack('>b', chr(rx_metadata[0]))[0] - 45
-        power = tx.get_header_power()
-
-        results = {'data': data,
-                   'xor': xor,
-                   'errors': errors,
-                   'crc': crc,
-                   'lqi': lqi,
-                   'rssi': rssi,
-                   'power': power}
-
-        return True, results
 
     def _sending_timeout_expired(self):
         self.sending_timeout_expired.value = True
