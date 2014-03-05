@@ -90,9 +90,9 @@ class MoteControl(object):
         else:
             self.logger.warn("Unknown Message: {}".format(str(m)))
 
-    def transmit(self, addr, msg):
-        self.logger.info("Transmitting: {}, {}".format(addr, msg))
-        self.mif.sendMsg(self.tos_source, addr, msg.get_amType(), 0, msg)
+    def broadcast(self, msg):
+        self.logger.info("Transmitting: {}".format(msg))
+        self.mif.sendMsg(self.tos_source, 0, msg.get_amType(), 0, msg)
 
     def __repr__(self):
         return self.__str__()

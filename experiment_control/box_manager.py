@@ -69,6 +69,22 @@ class BoxManager(Process, object):
                 return box
         return None
 
+    def boxes_without(self, box):
+        boxes = []
+        for b in self.boxes:
+            if b is not box:
+                boxes.append(b)
+        return boxes
+
+    @property
+    def identifiers(self):
+        return [box.id for box in self.boxes]
+
+    def __contains__(self, item):
+        if isinstance(item, Box):
+            return item in self.boxes
+        return item in self.identifiers
+
     def __repr__(self):
         return self.__str__()
 

@@ -87,8 +87,9 @@ class ScriptManager(object):
                     self.terminate_script()
                     break
                 command = self.get_command(line)
-                success = command.execute(self.boxmanager)
-                if not success:
+                if command:
+                    success = command.execute(self.boxmanager)
+                if not command or not success:
                     self.terminate_script()
             elif len(self.scripts):
                 self._set_active_script(self.scripts.pop(0))
@@ -116,7 +117,7 @@ class ScriptManager(object):
                 args = {arg.split('=')[0]: arg.split('=')[1] for arg in nline.split('\t')}
                 return MessageCommand(args, self.results)
             except:
-                self.logger.error("Error parsing script line '{}' for TemperatureCommand".format(line))
+                self.logger.error("Error parsing script line '{}' for MessageCommand".format(line))
                 return None
 
         elif line.startswith('wait for temperature target reached'):

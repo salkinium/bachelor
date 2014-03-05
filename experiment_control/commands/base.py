@@ -12,6 +12,8 @@ import os
 
 class BaseCommand(object):
 
+    logger_initialized = False
+
     def __init__(self, arguments=None, log_path='/var/log/boxmanager'):
         super(BaseCommand, self).__init__()
 
@@ -19,20 +21,24 @@ class BaseCommand(object):
 
         self.log_path = log_path
         self.logger = logging.getLogger('Command')
-        self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        # console logging
-        self.ch = logging.StreamHandler()
-        self.ch.setLevel(logging.DEBUG)
-        self.ch.setFormatter(formatter)
-        self.logger.addHandler(self.ch)
+        if not BaseCommand.logger_initialized:
+            self.logger.setLevel(logging.DEBUG)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        # file logging
-        fh = logging.FileHandler(os.path.join(self.log_path, 'scriptmanager.log'))
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        self.logger.addHandler(fh)
+            # console logging
+            self.ch = logging.StreamHandler()
+            self.ch.setLevel(logging.DEBUG)
+            self.ch.setFormatter(formatter)
+            self.logger.addHandler(self.ch)
+
+            # file logging
+            fh = logging.FileHandler(os.path.join(self.log_path, 'scriptmanager.log'))
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            self.logger.addHandler(fh)
+
+            BaseCommand.logger_initialized = True
 
     def execute(self, _):
         return True

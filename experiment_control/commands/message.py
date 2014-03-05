@@ -12,6 +12,7 @@ import time
 import random
 from threading import Timer
 from multiprocessing import Value
+import itertools
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tinyos', 'support', 'sdk', 'python'))
 
@@ -20,7 +21,7 @@ from tinyos.message.Message import *
 from tinyos.message.SerialPacket import *
 
 from base import BaseCommand
-from evaluator import Evaluator
+from formatter import MessageFormatter
 from messages import *
 
 
@@ -31,22 +32,35 @@ class MessageCommand(BaseCommand):
         self.results = result_logger
         self.sending_timeout_timer = None
         self.sending_timeout_expired = Value('b', False)
+        self.sending_period_timer = None
+        self.sending_period_expired = Value('b', False)
 
+        # we cannot add an item to a dict while iterating over it
         self.arguments['randomize'] = False
         for key in self.arguments:
-            if key in ['power', 'timeout', 'repeat', 'from', 'to', 'bursts']:
+            if key in ['power', 'repeat', 'bursts']:
                 try:
                     self.arguments[key] = int(self.arguments[key])
                 except ValueError:
                     self.logger.error("MessageCommand failed on parsing argument '{}'={} as integer"
                                       .format(key, self.arguments[key]))
-            if key in ['period']:
+            elif key in ['from']:
+                if self.arguments[key].startswith("cycle"):
+                    self.arguments[key] = []
+                else:
+                    try:
+                        id_list = self.arguments[key].split(',')
+                        self.arguments[key] = map(int, id_list)
+                    except ValueError:
+                        self.logger.error("MessageCommand failed on parsing argument '{}'={} as list of integers"
+                                          .format(key, self.arguments[key]))
+            elif key in ['period', 'timeout']:
                 try:
                     self.arguments[key] = float(self.arguments[key])
                 except ValueError:
                     self.logger.error("MessageCommand failed on parsing argument '{}'={} as float"
                                       .format(key, self.arguments[key]))
-            if key in ['data']:
+            elif key in ['data']:
                 if self.arguments[key].startswith("random("):
                     try:
                         number = int(self.arguments[key][7:-1])
@@ -56,7 +70,7 @@ class MessageCommand(BaseCommand):
                         self.logger.error("MessageCommand failed on parsing the length of random data '{}' as integer"
                                           .format(self.arguments[key][7:-1]))
                     except:
-                        self.logger.error("MessageCommand failed miserably on parsing the random data.")
+                        self.logger.error("MessageCommand failed miserably on parsing and generating the random data.")
                 else:
                     try:
                         string = self.arguments[key].decode("hex")
@@ -64,9 +78,9 @@ class MessageCommand(BaseCommand):
                     except ValueError:
                         self.logger.error("MessageCommand failed on decoding the hexadecimal data.")
 
-        args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': None, 'randomize': False}
+        args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': 1, 'randomize': False}
         args.update(self.arguments)
-        if not all(key in args for key in ('from', 'to', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts')):
+        if not all(key in args for key in ['from', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts']):
             self.logger.error("MessageCommand has incomplete arguments: '{}'".format(args))
             self.arguments = None
         else:
@@ -74,19 +88,6 @@ class MessageCommand(BaseCommand):
 
     def execute(self, boxmanager):
         if not self.arguments:
-            return False
-
-        from_id = self.arguments['from']
-        to_id = self.arguments['to']
-
-        sender = sender_orig = boxmanager.get_box(from_id)
-        if not sender:
-            self.logger.error("Sender '{}' not found!".format(from_id))
-            return False
-
-        receiver = receiver_orig = boxmanager.get_box(to_id)
-        if not receiver:
-            self.logger.error("Receiver '{}' not found!".format(to_id))
             return False
 
         tx = SerialMessage()
@@ -97,56 +98,70 @@ class MessageCommand(BaseCommand):
         tx.set_data(self.arguments['data'])
         self.logger.debug("Created message: {}".format(tx))
 
-        reversed_message_flow = False
-        bursts = self.arguments['bursts']
-        bursts = bursts - 1 if (bursts and bursts > 0) else None
+        bursts = self.arguments['bursts'] if self.arguments['bursts'] > 0 else 1
         repeats = self.arguments['repeat']
+        if len(self.arguments['from']) > 0:
+            if not all(box_id in boxmanager for box_id in self.arguments['from']):
+                self.logger.error("MessageCommand cannot find all boxes in BoxManager. Available boxes are: '{}'".format(boxmanager.identifiers))
+                return False
+            all_boxes = [boxmanager.get_box(box_id) for box_id in self.arguments['from']]
+        else:
+            all_boxes = boxmanager.boxes
+        if not len(all_boxes):
+            self.logger.error("MessageCommand found no boxes to send with.")
+            return False
+
+        senders = itertools.cycle(all_boxes)
+        sender = next(senders)
 
         while repeats:
-
-            if self.arguments['bursts'] and reversed_message_flow:
-                sender = receiver_orig
-                receiver = sender_orig
+            if bursts > 0:
+                bursts -= 1
             else:
-                sender = sender_orig
-                receiver = receiver_orig
+                bursts = self.arguments['bursts'] if self.arguments['bursts'] > 0 else 1
+                sender = next(senders)
 
-            sender.mote_control.purge_receive_buffer()
-            receiver.mote_control.purge_receive_buffer()
+            # clear all previous receive buffers
+            map(lambda box: box.mote_control.purge_receive_buffer(), boxmanager.boxes)
 
+            # broadcast the message
             tx.set_header_nodeid(sender.id)
-            #self.logger.debug("Sending message from '{}' to '{}'.".format(sender.id, receiver.id))
-            sender.transmit(receiver.id, tx)
+            tx.set_header_seqnum(self.arguments['repeat'] - repeats)
+            sender.broadcast(tx)
 
+            # start the sender period timer
+            if self.sending_period_timer:
+                self.sending_period_timer.cancel()
+            self.sending_period_expired.value = False
+            self.sending_period_timer = Timer(self.arguments['period'], self._sending_period_expired)
+            self.sending_period_timer.start()
+
+            # start the receive timeout timer
             if self.sending_timeout_timer:
                 self.sending_timeout_timer.cancel()
             self.sending_timeout_expired.value = False
             self.sending_timeout_timer = Timer(self.arguments['timeout'], self._sending_timeout_expired)
             self.sending_timeout_timer.start()
 
+            # wait until all boxes received something or reception timed out
             while not self.sending_timeout_expired.value and \
-                    (sender.mote_control.receive_buffer_empty() or receiver.mote_control.receive_buffer_empty()):
+                    any(box.mote_control.receive_buffer_empty() for box in boxmanager.boxes):
                 pass
 
-            tx_confirmation = sender.mote_control.get_received_message()
-            rx = receiver.mote_control.get_received_message()
+            # the sender received the local loop-back message
+            tx_loopback = sender.mote_control.get_received_message()
+            # write this message to the logs
+            tx_string = MessageFormatter.format_tx_message(tx_loopback, sender.mote_temperature)
+            self.results.info(tx_string)
 
-            if self.sending_timeout_expired.value or not rx or not tx_confirmation:
-                self.logger.warning("Message reception timed out on repeat {}".format(args['repeat'] - repeats))
-            else:
-                values = Evaluator.evaluate_messages(tx_confirmation, rx)
-                values.update({'temperatureFrom': sender.mote_temperature,
-                               'temperatureTo': receiver.mote_temperature})
-
-                result_string = Evaluator.format_values(values)
-                self.results.info(result_string)
-
-            if self.arguments['bursts']:
-                if bursts > 0:
-                    bursts -= 1
-                else:
-                    reversed_message_flow = not reversed_message_flow
-                    bursts = self.arguments['bursts'] - 1
+            # all other motes might have received the message
+            for receiver in boxmanager.boxes_without(sender):
+                # the receiver might have received a message
+                rx = receiver.mote_control.get_received_message()
+                rx.set_header_seqnum(tx_loopback.get_header_seqnum())
+                # write this message to the logs
+                rx_string = MessageFormatter.format_rx_message(rx, receiver.id, receiver.mote_temperature)
+                self.results.info(rx_string)
 
             if repeats > 0:
                 repeats -= 1
@@ -154,13 +169,17 @@ class MessageCommand(BaseCommand):
                     # randomize payload
                     tx.set_data([random.randint(0, 255) for _ in xrange(len(self.arguments['data']))])
                 # wait to send again
-                time.sleep(self.arguments['period'])
+                while not self.sending_period_expired.value:
+                    pass
 
         return True
 
 
     def _sending_timeout_expired(self):
         self.sending_timeout_expired.value = True
+
+    def _sending_period_expired(self):
+        self.sending_period_expired.value = True
 
     def __str__(self):
         return "MessageCommand()"

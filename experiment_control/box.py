@@ -76,8 +76,8 @@ class Box(object):
             self.temperature_timeout_timer = Timer(timeout, self._temperature_timeout_expired)
             self.temperature_timeout_timer.start()
 
-    def transmit(self, addr, msg):
-        self.mote_control.transmit(addr, msg)
+    def broadcast(self, msg):
+        self.mote_control.broadcast(msg)
 
     def _report_environment(self):
         self.logger.info("Environment: Tair={:.1f}C Tmote={:.1f}C Hmote={:.1f}% Tpower={}%"
