@@ -126,7 +126,7 @@ class MessageCommand(BaseCommand):
 
             # broadcast the message
             tx.set_header_nodeid(sender.id)
-            tx.set_header_seqnum(self.arguments['repeat'] - repeats)
+            tx.set_header_seqnum((self.arguments['repeat'] - repeats) & 0xffff)
             sender.broadcast(tx)
 
             # start the sender period timer
@@ -150,6 +150,10 @@ class MessageCommand(BaseCommand):
 
             # the sender received the local loop-back message
             tx_loopback = sender.mote_control.get_received_message()
+            if not tx_loopback:
+                self.logger.error("MessageCommand did not receive the loopback message from box '{}'".format(sender.id))
+                continue
+
             # write this message to the logs
             tx_string = MessageFormatter.format_tx_message(tx_loopback, sender.mote_temperature)
             self.results.info(tx_string)
@@ -158,9 +162,8 @@ class MessageCommand(BaseCommand):
             for receiver in boxmanager.boxes_without(sender):
                 # the receiver might have received a message
                 rx = receiver.mote_control.get_received_message()
-                rx.set_header_seqnum(tx_loopback.get_header_seqnum())
                 # write this message to the logs
-                rx_string = MessageFormatter.format_rx_message(rx, receiver.id, receiver.mote_temperature)
+                rx_string = MessageFormatter.format_rx_message(rx, receiver.id, tx_loopback.get_header_seqnum(), receiver.mote_temperature)
                 self.results.info(rx_string)
 
             if repeats > 0:

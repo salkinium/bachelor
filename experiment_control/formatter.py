@@ -95,13 +95,14 @@ class MessageFormatter(object):
         return MessageFormatter.format_dictionary(filtered_values)
 
     @staticmethod
-    def format_rx_message(msg, identifier, temperature):
-        values = {'id': identifier, 'temperature': temperature, 'mode': 'rx', 'timeout': 0}
+    def format_rx_message(msg, identifier, seqnum, temperature):
+        mvalues = {'id': identifier, 'temperature': temperature, 'mode': 'rx', 'timeout': 0, 'seqnum': seqnum}
         if msg is None:
-            values.update({'timeout': 1})
-            return MessageFormatter.format_dictionary(values)
+            mvalues.update({'timeout': 1})
+            return MessageFormatter.format_dictionary(mvalues)
         else:
-            values.update(MessageFormatter.decode_message(msg))
+            values = MessageFormatter.decode_message(msg)
+            values.update(mvalues)
 
         # only some keys make sense for a received message
         filtered_keys = ['mode', 'id', 'timeout', 'temperature', 'seqnum', 'length', 'data', 'lqi', 'rssi', 'crc']
