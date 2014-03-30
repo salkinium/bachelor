@@ -15,7 +15,7 @@ import logging
 class Analyzer(object):
 
     def __init__(self, links=None):
-        self.links = links if links else []
+        self.links = [] if not links else [link for link in links if link.is_valid]
 
         self.logger = logging.getLogger('LinkAnalyzer')
         self.logger.setLevel(logging.DEBUG)
@@ -24,10 +24,28 @@ class Analyzer(object):
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         ch.setFormatter(formatter)
+        self.logger.handlers = []
         self.logger.addHandler(ch)
 
     def get_array_of_property(self, key):
-        return [p[key] for p in self.links]
+        results = []
+        for link in self.links:
+            for rx in link.get_messages_with_errors():
+                if key in rx:
+                    results.append(rx[key])
+        return results
+
+
+    def create_rssi_plot(self):
+        rssi = self.get_array_of_property('rssi')
+        self.logger.debug("RSSI in range [{}, {}]".format(min(rssi), max(rssi)))
+
+        pylab.figure()
+        n, bins, patches = pylab.hist(rssi, range(-100, -65), normed=True, histtype='stepfilled', rwidth=0.8)
+        pylab.setp(patches, facecolor='r', alpha=0.75)
+        pylab.ylabel("occurances")
+        pylab.xlabel("RSSI")
+        return pylab
 
     def create_rssi_plot(self):
         rssi = self.get_array_of_property('rssi')
