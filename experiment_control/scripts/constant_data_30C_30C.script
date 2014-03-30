@@ -1,0 +1,6 @@
+set temperature:	box=1	temperature=30
+set temperature:	box=0	temperature=30
+
+wait temperature:	timeout=1800
+
+send message:	from=0,1	power=2	data=0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff00112233445566778899aabbccddeeff	timeout=0.15	period=0.05	repeat=300000	bursts=10

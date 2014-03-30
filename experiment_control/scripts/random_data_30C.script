@@ -1,8 +1,0 @@
-# set a defined temperature of 30C in both boxes
-set temperature:	box=1	temperature=30	timeout=1800
-set temperature:	box=0	temperature=30	timeout=1800
-
-wait for temperature target reached:
-
-# send random data
-send message:	from=0,1	power=2	data=random(86)	timeout=1	period=0.05	repeat=1000000	bursts=10
