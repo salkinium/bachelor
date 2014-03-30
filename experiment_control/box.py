@@ -8,8 +8,6 @@
 
 import logging
 import os
-from multiprocessing import Value
-from threading import Timer
 
 from periodic_timer import PeriodicTimer
 from temperature_control import TemperatureControl
@@ -41,17 +39,22 @@ class Box(object):
 
         self.id = int(identifier)
         self.mote_control = MoteControl(mote, os.path.join(log_path, 'box_raw-{}.log'.format(identifier)))
-        self.temperature_control = TemperatureControl(temperature, os.path.join(log_path, 'box_raw-{}.log'
+
+        if temperature:
+            self.temperature_control = TemperatureControl(temperature, os.path.join(log_path, 'box_raw-{}.log'
                                                                                 .format(identifier)))
+        else:
+            self.temperature_control = None
 
         self.environment_timer = PeriodicTimer(10, self._report_environment)
         self.environment_timer.start()
-        self.temperature_timeout_timer = None
-        self.temperature_timeout_expired = Value('b', True)
 
     @property
     def air_temperature(self):
-        return self.temperature_control.temperature
+        if self.temperature_control:
+            return self.temperature_control.temperature
+        else:
+            return self.mote_temperature
 
     @property
     def mote_temperature(self):
@@ -62,31 +65,29 @@ class Box(object):
         return self.mote_control.humidity
 
     def temperature_target_reached(self):
-        return (self.temperature_control.target_reached(self.mote_temperature)) \
-            or self.temperature_timeout_expired.value
+        if self.temperature_control:
+            return (self.temperature_control.target_reached(self.mote_temperature))
+        else:
+            return True
 
-    def set_air_temperature(self, value, timeout=None):
+    def set_air_temperature(self, value):
+        if not self.temperature_control:
+            return
         self.logger.info("Setting air temperature to {}C".format(value))
         self.temperature_control.temperature = value
-        # set-up the timeout
-        self.temperature_timeout_expired.value = False
-        if self.temperature_timeout_timer:
-            self.temperature_timeout_timer.cancel()
-        if timeout:
-            self.temperature_timeout_timer = Timer(timeout, self._temperature_timeout_expired)
-            self.temperature_timeout_timer.start()
 
     def broadcast(self, msg):
         self.mote_control.broadcast(msg)
 
     def _report_environment(self):
+        if self.temperature_control:
+            power = self.temperature_control.power
+        else:
+            power = -1
         self.logger.info("Environment: Tair={:.1f}C Tmote={:.1f}C Hmote={:.1f}% Tpower={}%"
-                         .format(self.air_temperature, self.mote_temperature,
-                                 self.mote_humidity, self.temperature_control.power))
+                             .format(self.air_temperature, self.mote_temperature,
+                                     self.mote_humidity, power))
         return True
-
-    def _temperature_timeout_expired(self):
-        self.temperature_timeout_expired.value = True
 
     def __repr__(self):
         return self.__str__()

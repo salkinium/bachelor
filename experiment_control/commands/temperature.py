@@ -15,7 +15,7 @@ class TemperatureCommand(BaseCommand):
         super(TemperatureCommand, self).__init__(arguments)
 
         for key in self.arguments:
-            if key in ['temperature', 'timeout', 'box']:
+            if key in ['temperature', 'box']:
                 try:
                     self.arguments[key] = int(self.arguments[key])
                 except ValueError:
@@ -25,7 +25,7 @@ class TemperatureCommand(BaseCommand):
         args = {'timeout': None}
         args.update(self.arguments)
 
-        if not all(key in args for key in ('box', 'temperature', 'timeout')):
+        if not all(key in args for key in ['box', 'temperature']):
             self.logger.error("TemperatureCommand has incomplete arguments: '{}'".format(args))
             self.arguments = None
         else:
@@ -40,7 +40,7 @@ class TemperatureCommand(BaseCommand):
             self.logger.error("Box '{}' not found!".format(self.arguments['box']))
             return False
 
-        box.set_air_temperature(self.arguments['temperature'], self.arguments['timeout'])
+        box.set_air_temperature(self.arguments['temperature'])
         return True
 
     def __str__(self):

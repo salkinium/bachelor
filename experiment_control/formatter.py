@@ -27,7 +27,7 @@ class MessageFormatter(object):
         result_list.append(MessageFormatter._format_item(values, 'id'))
         result_list.append(MessageFormatter._format_item(values, 'seqnum'))
         if 'temperature' in values:
-            result_list.append("temperature={:.1f}\t".format(values['temperature']))
+            result_list.append("temperature={:.1f}".format(values['temperature']))
 
         if 'timeout' in values and values['timeout']:
             result_list.append("timeout=1")
@@ -36,7 +36,7 @@ class MessageFormatter(object):
             result_list.append(MessageFormatter._format_item(values, 'length'))
             if 'data' in values:
                 values['data'] = ["0x%x" % b for b in values['data']]
-                result_list.append("data={}\t".format(" ".join(values['data'])))
+                result_list.append("data={}".format(" ".join(values['data'])))
             result_list.append(MessageFormatter._format_item(values, 'power'))
             result_list.append(MessageFormatter._format_item(values, 'rssi'))
             result_list.append(MessageFormatter._format_item(values, 'lqi'))
@@ -58,7 +58,7 @@ class MessageFormatter(object):
         if msg is None:
             return {}
 
-        length = msg.get_header_len()
+        length = ord(msg.data[10])
         data = msg.data[:-(100 - length)]
         metadata = [msg.getElement_header_metadata(0), msg.getElement_header_metadata(1)]
         data = map(ord, data)

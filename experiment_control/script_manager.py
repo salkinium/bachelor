@@ -120,8 +120,14 @@ class ScriptManager(object):
                 self.logger.error("Error parsing script line '{}' for MessageCommand".format(line))
                 return None
 
-        elif line.startswith('wait for temperature target reached'):
-                return TemperatureReachedCommand()
+        elif line.startswith('wait temperature:\t'):
+            nline = line.replace('wait temperature:\t', '')
+            try:
+                args = {arg.split('=')[0]: arg.split('=')[1] for arg in nline.split('\t')}
+                return TemperatureReachedCommand(args)
+            except:
+                self.logger.error("Error parsing script line '{}' for TemperatureReachedCommand".format(line))
+                return None
 
         else:
             self.logger.warn("Unknown script command: '{}'".format(line))
