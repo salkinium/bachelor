@@ -17,7 +17,7 @@ class Link:
     def __init__(self, tx):
         assert tx.is_transmission
         self.tx = tx
-        self.rx = []
+        self.valid_rx = []
         self.invalid_rx = []
         self.timeout_rx = []
 
@@ -28,7 +28,7 @@ class Link:
                 len(rx['data']) >= len(self.tx['data']) and \
                 rx['data'][10] == self.tx['data'][10] and \
                 rx['seqnum'] == self.tx['seqnum']:
-            self.rx.append(rx)
+            self.valid_rx.append(rx)
 
             xor = [rx['data'][ii] ^ self.tx['data'][ii] for ii in range(10, len(self.tx['data']))][:-1]
             xor_bits = map((lambda d: bin(d).count("1")), xor)
@@ -37,21 +37,30 @@ class Link:
             rx['errors'] = errors
 
         else:
-            if rx['timeout']:
+            if rx['timeout'] == 0:
                 self.invalid_rx.append(rx)
             else:
                 self.timeout_rx.append(rx)
 
     @property
     def is_valid(self):
-        return len(self.rx)
+        return len(self.valid_rx)
 
     @property
     def has_error(self):
-        return any(rx['errors'] for rx in self.rx)
+        return any(rx['errors'] for rx in self.valid_rx)
 
     def get_messages_with_errors(self):
-        return [rx for rx in self.rx if rx['errors'] > 0]
+        return [rx for rx in self.valid_rx if rx['errors'] > 0]
+
+    @property
+    def rx(self):
+        rx = []
+        rx.extend(self.valid_rx)
+        rx.extend(self.invalid_rx)
+        rx.extend(self.timeout_rx)
+
+        return rx
 
     def __hash__(self):
         return str(self)

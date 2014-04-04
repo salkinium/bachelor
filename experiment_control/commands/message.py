@@ -78,7 +78,7 @@ class MessageCommand(BaseCommand):
                     except ValueError:
                         self.logger.error("MessageCommand failed on decoding the hexadecimal data.")
 
-        args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 1, 'bursts': 1, 'randomize': False}
+        args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 0, 'bursts': 1, 'randomize': False}
         args.update(self.arguments)
         if not all(key in args for key in ['from', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts']):
             self.logger.error("MessageCommand has incomplete arguments: '{}'".format(args))
@@ -98,7 +98,7 @@ class MessageCommand(BaseCommand):
         tx.set_data(self.arguments['data'])
         self.logger.debug("Created message: {}".format(tx))
 
-        bursts = self.arguments['bursts'] if self.arguments['bursts'] > 0 else 1
+        bursts = self.arguments['bursts'] - 1 if self.arguments['bursts'] > 0 else 0
         repeats = self.arguments['repeat']
         if len(self.arguments['from']) > 0:
             if not all(box_id in boxmanager for box_id in self.arguments['from']):
@@ -118,7 +118,7 @@ class MessageCommand(BaseCommand):
             if bursts > 0:
                 bursts -= 1
             else:
-                bursts = self.arguments['bursts'] if self.arguments['bursts'] > 0 else 1
+                bursts = self.arguments['bursts'] - 1 if self.arguments['bursts'] > 0 else 0
                 sender = next(senders)
 
             # clear all previous receive buffers
@@ -146,7 +146,7 @@ class MessageCommand(BaseCommand):
             # wait until all boxes received something or reception timed out
             while not self.sending_timeout_expired.value and \
                     any(box.mote_control.receive_buffer_empty() for box in boxmanager.boxes):
-                pass
+                time.sleep(0)
 
             # the sender received the local loop-back message
             tx_loopback = sender.mote_control.get_received_message()
@@ -173,7 +173,7 @@ class MessageCommand(BaseCommand):
                     tx.set_data([random.randint(0, 255) for _ in xrange(len(self.arguments['data']))])
                 # wait to send again
                 while not self.sending_period_expired.value:
-                    pass
+                    time.sleep(0)
 
         return True
 

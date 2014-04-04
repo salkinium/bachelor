@@ -20,6 +20,16 @@ from messages import *
 
 class MessageFormatter(object):
 
+    _visualizer = None
+
+    @staticmethod
+    def add_visualizer(visualizer):
+        MessageFormatter._visualizer = visualizer
+
+    @staticmethod
+    def disable_visualizer():
+        MessageFormatter._visualizer = None
+
     @staticmethod
     def format_dictionary(values):
         result_list = []
@@ -92,7 +102,11 @@ class MessageFormatter(object):
         filtered_keys = ['mode', 'id', 'temperature', 'length', 'data', 'power', 'seqnum']
         filtered_values = {key:value for key, value in values.items() if key in filtered_keys}
 
-        return MessageFormatter.format_dictionary(filtered_values)
+        string_message = MessageFormatter.format_dictionary(filtered_values)
+        if MessageFormatter._visualizer:
+            MessageFormatter._visualizer.add_tx_message(string_message)
+
+        return string_message
 
     @staticmethod
     def format_rx_message(msg, identifier, seqnum, temperature):
@@ -108,12 +122,14 @@ class MessageFormatter(object):
         filtered_keys = ['mode', 'id', 'timeout', 'temperature', 'seqnum', 'length', 'data', 'lqi', 'rssi', 'crc']
         filtered_values = {key: value for key, value in values.items() if key in filtered_keys}
 
-        return MessageFormatter.format_dictionary(filtered_values)
+        string_message = MessageFormatter.format_dictionary(filtered_values)
+        if MessageFormatter._visualizer:
+            MessageFormatter._visualizer.add_rx_message(string_message)
 
-        pass
+        return string_message
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
-        return "Evaluator"
+        return "MessageFormatter({})".format(MessageFormatter._visualizer)
