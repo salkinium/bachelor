@@ -11,3 +11,4 @@ plots/
 *.bak
 *.dxf
 *.eps
+motes/Monitoring/build/

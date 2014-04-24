@@ -1,0 +1,4 @@
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export TOSROOT=$DIR/../tinyos
+export TOSDIR=$TOSROOT/tos
+export MAKERULES=$TOSROOT/support/make/Makerules
