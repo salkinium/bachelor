@@ -1,0 +1,23 @@
+set temperature:	box=1	temperature=30
+wait:	time=30
+
+set temperature:	box=1	temperature=35
+wait:	time=40
+
+set temperature:	box=1	temperature=40
+wait:	time=50
+
+set temperature:	box=1	temperature=45
+wait:	time=60
+
+set temperature:	box=1	temperature=50
+wait:	time=100
+
+set temperature:	box=1	temperature=60
+wait:	time=160
+
+set temperature:	box=1	temperature=70
+wait:	time=190
+
+set temperature:	box=1	temperature=100
+wait:	time=1800

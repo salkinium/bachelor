@@ -1,1 +1,2 @@
-send message:	from=0,1	power=3	data=0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff00112233445566778899aabbccddeeff	timeout=0.15	period=0	repeat=10000	bursts=1
+set temperature:	box=1	temperature=0
+send message:	from=1	power=3	data=0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff00112233445566778899aabbccddeeff	timeout=1	period=0.5	repeat=10000	bursts=2
