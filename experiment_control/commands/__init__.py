@@ -10,3 +10,4 @@ from ignore import IgnoreCommand
 from message import MessageCommand
 from temperature import TemperatureCommand
 from temperature_reached import TemperatureReachedCommand
+from wait import WaitCommand
