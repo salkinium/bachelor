@@ -19,13 +19,13 @@ class SensorMessage(tinyos.message.Message.Message):
     def __init__(self, data="", addr=None, gid=None, base_offset=0, data_length=6):
         tinyos.message.Message.Message.__init__(self, data, addr, gid, base_offset, data_length)
         self.amTypeSet(AM_TYPE)
-    
+
     # Get AM_TYPE
     def get_amType(cls):
         return AM_TYPE
-    
+
     get_amType = classmethod(get_amType)
-    
+
     #
     # Return a String representation of this message. Includes the
     # message type name and the non-indexed field values.
@@ -60,49 +60,49 @@ class SensorMessage(tinyos.message.Message.Message):
     #
     def isSigned_nodeid(self):
         return False
-    
+
     #
     # Return whether the field 'nodeid' is an array (False).
     #
     def isArray_nodeid(self):
         return False
-    
+
     #
     # Return the offset (in bytes) of the field 'nodeid'
     #
     def offset_nodeid(self):
         return (0 / 8)
-    
+
     #
     # Return the offset (in bits) of the field 'nodeid'
     #
     def offsetBits_nodeid(self):
         return 0
-    
+
     #
     # Return the value (as a int) of the field 'nodeid'
     #
     def get_nodeid(self):
         return self.getUIntElement(self.offsetBits_nodeid(), 16, 1)
-    
+
     #
     # Set the value of the field 'nodeid'
     #
     def set_nodeid(self, value):
         self.setUIntElement(self.offsetBits_nodeid(), 16, value, 1)
-    
+
     #
     # Return the size, in bytes, of the field 'nodeid'
     #
     def size_nodeid(self):
         return (16 / 8)
-    
+
     #
     # Return the size, in bits, of the field 'nodeid'
     #
     def sizeBits_nodeid(self):
         return 16
-    
+
     #
     # Accessor methods for field: temperature
     #   Field type: int
@@ -115,49 +115,49 @@ class SensorMessage(tinyos.message.Message.Message):
     #
     def isSigned_temperature(self):
         return False
-    
+
     #
     # Return whether the field 'temperature' is an array (False).
     #
     def isArray_temperature(self):
         return False
-    
+
     #
     # Return the offset (in bytes) of the field 'temperature'
     #
     def offset_temperature(self):
         return (16 / 8)
-    
+
     #
     # Return the offset (in bits) of the field 'temperature'
     #
     def offsetBits_temperature(self):
         return 16
-    
+
     #
     # Return the value (as a int) of the field 'temperature'
     #
     def get_temperature(self):
         return self.getUIntElement(self.offsetBits_temperature(), 16, 1)
-    
+
     #
     # Set the value of the field 'temperature'
     #
     def set_temperature(self, value):
         self.setUIntElement(self.offsetBits_temperature(), 16, value, 1)
-    
+
     #
     # Return the size, in bytes, of the field 'temperature'
     #
     def size_temperature(self):
         return (16 / 8)
-    
+
     #
     # Return the size, in bits, of the field 'temperature'
     #
     def sizeBits_temperature(self):
         return 16
-    
+
     #
     # Accessor methods for field: humidity
     #   Field type: int
@@ -170,46 +170,46 @@ class SensorMessage(tinyos.message.Message.Message):
     #
     def isSigned_humidity(self):
         return False
-    
+
     #
     # Return whether the field 'humidity' is an array (False).
     #
     def isArray_humidity(self):
         return False
-    
+
     #
     # Return the offset (in bytes) of the field 'humidity'
     #
     def offset_humidity(self):
         return (32 / 8)
-    
+
     #
     # Return the offset (in bits) of the field 'humidity'
     #
     def offsetBits_humidity(self):
         return 32
-    
+
     #
     # Return the value (as a int) of the field 'humidity'
     #
     def get_humidity(self):
         return self.getUIntElement(self.offsetBits_humidity(), 16, 1)
-    
+
     #
     # Set the value of the field 'humidity'
     #
     def set_humidity(self, value):
         self.setUIntElement(self.offsetBits_humidity(), 16, value, 1)
-    
+
     #
     # Return the size, in bytes, of the field 'humidity'
     #
     def size_humidity(self):
         return (16 / 8)
-    
+
     #
     # Return the size, in bits, of the field 'humidity'
     #
     def sizeBits_humidity(self):
         return 16
-    
+

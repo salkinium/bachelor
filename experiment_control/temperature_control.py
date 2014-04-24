@@ -69,7 +69,7 @@ class TemperatureControl(Process, object):
 
     def target_reached(self, moteTemperature):
         delta = 1.5
-        if (self.target - delta <= self.temperature <= self.target + delta and \
+        if (self.target - delta <= self.temperature <= self.target + delta and
                                 self.target - delta <= moteTemperature <= self.target + delta):
             return True
         return False

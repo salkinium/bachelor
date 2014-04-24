@@ -9,7 +9,7 @@
 from base import BaseCommand
 from multiprocessing import Value
 from threading import Timer
-
+import time
 
 class TemperatureReachedCommand(BaseCommand):
 
@@ -48,7 +48,7 @@ class TemperatureReachedCommand(BaseCommand):
 
         while not all(box.temperature_target_reached() for box in boxmanager.boxes) and \
                 not self.temperature_timeout_expired.value:
-            pass
+            time.sleep(0)
 
         return True
 
