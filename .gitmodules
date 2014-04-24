@@ -1,6 +1,3 @@
 [submodule "software/xpcc"]
 	path = box/software/xpcc
 	url = https://github.com/roboterclubaachen/xpcc.git
-[submodule "tinyos"]
-	path = tinyos
-	url = https://github.com/tinyos/tinyos-main.git
