@@ -12,7 +12,7 @@ import tinyos.message.Message
 DEFAULT_MESSAGE_SIZE = 110
 
 # The Active Message type associated with this message.
-AM_TYPE = 13
+AM_TYPE = 12
 
 class SerialMessage(tinyos.message.Message.Message):
     # Create a new SerialMessage of size 110.
