@@ -1,0 +1,6 @@
+set temperature:	box=1	temperature=30
+set temperature:	box=0	temperature=70
+
+wait temperature:	timeout=2000
+
+send message:	from=0,1	power=3	data=random(86)	timeout=0.15	period=0	repeat=300000	bursts=10

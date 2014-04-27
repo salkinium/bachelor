@@ -18,17 +18,17 @@ class WaitCommand(BaseCommand):
         super(WaitCommand, self).__init__(arguments)
 
         for key in self.arguments:
-            if key in ['time']:
+            if key in ['timeout']:
                 try:
                     self.arguments[key] = int(self.arguments[key])
                 except ValueError:
                     self.logger.error("WaitCommand failed on parsing argument '{}'={} as integer"
                                       .format(key, self.arguments[key]))
 
-        args = {'time': None}
+        args = {'timeout': None}
         args.update(self.arguments)
 
-        if not all(key in args for key in ['time']):
+        if not all(key in args for key in ['timeout']):
             self.logger.error("WaitCommand has incomplete arguments: '{}'".format(args))
             self.arguments = None
         else:
@@ -43,8 +43,8 @@ class WaitCommand(BaseCommand):
         if self.wait_timeout_timer:
             self.wait_timeout_timer.cancel()
 
-        if self.arguments['time']:
-            self.wait_timeout_timer = Timer(self.arguments['time'], self._wait_timeout_expired)
+        if self.arguments['timeout']:
+            self.wait_timeout_timer = Timer(self.arguments['timeout'], self._wait_timeout_expired)
             self.wait_timeout_timer.start()
 
         while not self.wait_timeout_expired.value:

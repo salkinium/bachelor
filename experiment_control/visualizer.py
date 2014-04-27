@@ -32,7 +32,7 @@ class MessageVisualizer(Process, object):
 
         self.temperature = self.fig.add_axes([0.05, 0.7, 0.9, 0.2], label='temperature')
         self.temperature.axes.get_xaxis().set_visible(False)
-        self.temperature.set_ylim(10, 30)
+        self.temperature.set_ylim(20, 100)
         self.temperature.set_ylabel('Temperature')
 
         self.errors = self.fig.add_axes([0.05, 0.5, 0.9, 0.2], label='errors')
@@ -141,7 +141,6 @@ class MessageVisualizer(Process, object):
             self.rssi_plot[node].set_ydata(self.rssi_values[node])
             self.temperature_plot[node].set_ydata(self.temperature_values[node])
 
-        print "hello"
         # update the graph
         plt.draw()
 
