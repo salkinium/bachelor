@@ -36,6 +36,7 @@ class MessageFormatter(object):
         result_list.append(MessageFormatter._format_item(values, 'mode'))
         result_list.append(MessageFormatter._format_item(values, 'id'))
         result_list.append(MessageFormatter._format_item(values, 'seqnum'))
+        result_list.append(MessageFormatter._format_item(values, 'coder'))
         if 'temperature' in values:
             result_list.append("temperature={:.1f}".format(values['temperature']))
 
@@ -94,13 +95,17 @@ class MessageFormatter(object):
         return results
 
     @staticmethod
-    def format_tx_message(msg, temperature):
+    def format_tx_message(msg, temperature, properties=None):
         values = {'temperature': temperature, 'mode': 'tx'}
         values.update(MessageFormatter.decode_message(msg))
 
         # only some keys make sense for a transmitted message
         filtered_keys = ['mode', 'id', 'temperature', 'length', 'data', 'power', 'seqnum']
         filtered_values = {key:value for key, value in values.items() if key in filtered_keys}
+        if properties:
+            if properties['type'] == 'reed-solomon':
+                coder = "rs,{},{}".format(properties['coder'].n, properties['coder'].k)
+                filtered_values.update({'coder': coder})
 
         string_message = MessageFormatter.format_dictionary(filtered_values)
         if MessageFormatter._visualizer:

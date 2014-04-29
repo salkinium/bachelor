@@ -144,7 +144,7 @@ class MessageCommand(BaseCommand):
                 continue
 
             # write this message to the logs
-            tx_string = MessageFormatter.format_tx_message(tx_loopback, sender.mote_temperature)
+            tx_string = MessageFormatter.format_tx_message(tx_loopback, sender.mote_temperature, self.arguments['data'].properties)
             self.results.info(tx_string)
 
             # all other motes might have received the message
