@@ -21,6 +21,7 @@ from tinyos.message.Message import *
 from tinyos.message.SerialPacket import *
 
 from base import BaseCommand
+from payload import Payload
 from formatter import MessageFormatter
 from messages import *
 
@@ -61,24 +62,12 @@ class MessageCommand(BaseCommand):
                     self.logger.error("MessageCommand failed on parsing argument '{}'={} as float"
                                       .format(key, self.arguments[key]))
             elif key in ['data']:
-                if self.arguments[key].startswith("random("):
-                    try:
-                        number = int(self.arguments[key][7:-1])
-                        self.arguments[key] = [random.randint(0, 255) for _ in xrange(number)]
-                        self.arguments['randomize'] = True
-                    except ValueError:
-                        self.logger.error("MessageCommand failed on parsing the length of random data '{}' as integer"
-                                          .format(self.arguments[key][7:-1]))
-                    except:
-                        self.logger.error("MessageCommand failed miserably on parsing and generating the random data.")
-                else:
-                    try:
-                        string = self.arguments[key].decode("hex")
-                        self.arguments[key] = map(ord, string)
-                    except ValueError:
-                        self.logger.error("MessageCommand failed on decoding the hexadecimal data.")
+                data = Payload(self.arguments[key])
+                if not data.valid:
+                    self.logger.error("MessageCommand failed miserably on parsing the payload.")
+                self.arguments[key] = data
 
-        args = {'timeout': 1, 'power': 7, 'data': [], 'repeat': 1, 'period': 0, 'bursts': 1, 'randomize': False}
+        args = {'timeout': 1, 'power': 7, 'data': Payload(), 'repeat': 1, 'period': 0, 'bursts': 1, 'randomize': False}
         args.update(self.arguments)
         if not all(key in args for key in ['from', 'power', 'data', 'repeat', 'period', 'timeout', 'bursts']):
             self.logger.error("MessageCommand has incomplete arguments: '{}'".format(args))
@@ -95,7 +84,7 @@ class MessageCommand(BaseCommand):
         tx.set_header_type(SerialMessage.get_amType())
         tx.set_header_power(self.arguments['power'])
         tx.set_header_len(len(self.arguments['data']))
-        tx.set_data(self.arguments['data'])
+        tx.set_data(self.arguments['data'].data)
         self.logger.debug("Created message: {}".format(tx))
 
         bursts = self.arguments['bursts'] - 1 if self.arguments['bursts'] > 0 else 0
@@ -168,9 +157,7 @@ class MessageCommand(BaseCommand):
 
             if repeats > 0:
                 repeats -= 1
-                if self.arguments['randomize']:
-                    # randomize payload
-                    tx.set_data([random.randint(0, 255) for _ in xrange(len(self.arguments['data']))])
+                tx.set_data(self.arguments['data'].data)
                 # wait to send again
                 while not self.sending_period_expired.value:
                     time.sleep(0)
