@@ -4,3 +4,6 @@
 [submodule "tinyos"]
 	path = tinyos
 	url = https://github.com/salkinium/tinyos-main.git
+[submodule "experiment_control/rs"]
+	path = experiment_control/rs
+	url = https://github.com/brownan/Reed-Solomon.git
