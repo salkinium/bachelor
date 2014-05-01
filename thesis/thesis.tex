@@ -1,0 +1,222 @@
+%% HEADER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\hyperrefpdfauthor}{}
+\newcommand{\hyperrefpdftitle}{}
+\newcommand{\hyperrefpdfsubject}{}
+\newcommand{\hyperrefpdfkeywords}{}
+\newcommand{\hyperrefpdfborder}{0}
+\documentclass{wissdoc-kw-eng}
+
+\newcommand{\eg}[0]{e.g., }
+\newcommand{\ie}[0]{i.e., }
+\newcommand{\etal}[0]{et~al.}
+\newcommand{\floatwidth}[0]{\columnwidth}
+\newcommand{\subfloatwidth}[0]{0.48\columnwidth}
+\newcommand{\comment}[1]{}
+\definecolor{Orange}{rgb}{1,0.5,0}
+\newcommand{\todo}[1]{\textsf{\textbf{\textcolor{Orange}{[[#1]]}}}}
+
+\usepackage[printonlyused]{acronym}
+\renewcommand{\bflabel}[1]{\normalfont{\normalsize{#1}}\hfill} % keine serifenlose schrift für acronym
+%\usepackage{acronym}
+\usepackage{subfigure}
+
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{listing}{htbp}{lop}[chapter]
+\floatname{listing}{Listing}
+
+\usepackage[hang,center,nooneline]{caption}
+%\usepackage{subcaption}
+\captionsetup[figure]{font={small,sf}}
+\captionsetup[table]{font={small,sf}}
+\captionsetup[listing]{font={small,sf}}
+\usepackage{etoolbox}
+
+
+%% Normales LaTeX oder pdfLaTeX? %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ==> Das neue if-Kommando "\ifpdf" wird an einigen wenigen
+%% ==> Stellen benötigt, um die Kompatibilität zwischen
+%% ==> LaTeX und pdfLaTeX herzustellen.
+%\newif\ifpdf
+%\ifx\pdfoutput\undefined
+%    \pdffalse              %%normales LaTeX wird ausgeführt
+%\else
+%    \pdfoutput=1
+%    \pdftrue               %%pdfLaTeX wird ausgeführt
+%\fi
+
+
+%% Fonts für pdfLaTeX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ==> Nur notwendig, falls keine cm-super-Fonts installiert
+\ifpdf
+	\usepackage{ae}       %%Benutzen Sie nur eines dieser Pakete:
+	%\usepackage{zefonts}  %%je nachdem, welches Sie besitzen.
+\else
+	%%Normales LaTeX - keine speziellen Fontpackages notwendig
+\fi
+
+
+%% Deutsche Anpassungen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+
+%% zur Zitaten des Quelltextes%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% "final" forces printing of all listings, even if the global "draft" is set
+\usepackage[final]{listings}
+\lstset{
+    basicstyle=\footnotesize\ttfamily,
+    tabsize=4,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    numbers=left,
+    captionpos=b,
+    abovecaptionskip=0pt,
+    belowcaptionskip=0pt,
+    aboveskip=10pt,
+    belowskip=0pt,
+    floatplacement=tbp,
+    frame=topline,
+    framerule=.1pt,
+    framesep = 3pt,
+    }
+\renewcommand\lstlistingname{\textbf{Listing}}
+% This is only kept for backwards compatibility. You should never have to use it. Use the listing-environment instead.
+%\DeclareCaptionFormat*{lstruled}{{\bfseries#1\small\space\normalfont#3\hrule height.1pt depth0pt}\par}
+%\captionsetup[lstlisting]{format=lstruled,singlelinecheck=false}
+
+%% mehrere Abbildungen in eine %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{subfigure}
+
+%% Packages für Formeln %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+
+%% Zeilenabstand %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{setspace}
+%\singlespacing        %% 1-zeilig (Standard)
+%\onehalfspacing       %% 1,5-zeilig
+%\doublespacing        %% 2-zeilig
+
+
+%% Andere Packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{a4wide} %%Kleinere Seitenränder = mehr Text pro Zeile.
+\usepackage{fancyhdr} %%Fancy Kopf- und Fußzeilen
+%\usepackage{longtable} %%Für Tabellen, die eine Seite überschreiten
+\usepackage{lscape}
+\usepackage{rotating} 
+%\usepackage[htt]{hyphenat} %Trennung von Typewriter-Schriften
+%\usepackage{listings}
+\usepackage{pstricks-add}
+
+
+% Tabellen mit Center und left
+\usepackage{tabularx,colortbl} % colored table background
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+% Table spacings
+\newcommand\T{\rule{0pt}{2.5ex}\rule[-1.0ex]{0pt}{0pt}}
+\newcommand\B{\rule[-1.0ex]{0pt}{0pt}}
+
+\definecolor{slightgray}{gray}{.90} 
+
+
+%% Definitionen %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% zur Benutzung bei ergänzenden Daten%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{endnotes}
+%\renewcommand{\notesname}{Konfigurationsdaten der Messreihen}
+%\renewcommand{\theendnote}{\Alph{endnote}}
+%\renewcommand{\enotesize}{\normalsize}
+
+%\hyphenation{Sensor-netz-werk
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOKUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%% Dateiendungen für Grafiken %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ==> Sie können hiermit die Dateiendung einer Grafik weglassen.
+%% ==> Aus "\includegraphics{titel.eps}" wird "\includegraphics{titel}".
+%% ==> Wenn Sie nunmehr 2 inhaltsgleiche Grafiken "titel.eps" und
+%% ==> "titel.pdf" erstellen, wird jeweils nur die Grafik eingebunden,
+%% ==> die von ihrem Compiler verarbeitet werden kann.
+%% ==> pdfLaTeX benutzt "titel.pdf". LaTeX benutzt "titel.eps".
+%\ifpdf
+%    \DeclareGraphicsExtensions{.pdf,.jpg,.png}
+%\else
+%    \DeclareGraphicsExtensions{.eps}
+%\fi
+
+\pagestyle{empty} %%Keine Kopf-/Fusszeilen auf den ersten Seiten.
+
+\ifnotdraft{
+%% Deckblatt %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frontmatter
+\include{chapters/00_title}
+\cleardoublepage
+\include{chapters/00_statement}
+\cleardoublepage
+\include{chapters/00_abstract}
+\cleardoublepage
+\include{chapters/00_acknowledgments}
+\cleardoublepage
+
+% Titelseite hatte noch normale Tabellen. Von hier ab sollen alle
+% Tabellen laut style-Vorgaben sans serif sein.
+\AtBeginEnvironment{tabular}{\sffamily}
+\AtBeginEnvironment{tabularx}{\sffamily}
+
+%% Inhaltsverzeichnis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents %Inhaltsverzeichnis
+\cleardoublepage %Das erste Kapitel soll auf einer ungeraden Seite beginnen.
+} % end ifnotdraft
+
+\pagestyle{fancy} %%Ab hier die Kopf-/Fusszeilen: headings / fancy / ...
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% einzelne Kapitel
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\include{commands}
+
+\mainmatter
+\include{chapters/01_introduction}
+\include{chapters/03_testbed}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LITERATUR UND ANDERE VERZEICHNISSE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Ein kleiner Abstand zu den Kapiteln im Inhaltsverzeichnis (toc)
+\ifnotdraft{
+\addtocontents{toc}{\protect\vspace*{\baselineskip}}
+\cleardoublepage
+%% Literaturverzeichnis
+\phantomsection % phantomsection wird benötigt, damit z.B. hyperref die richtige Seite verlinkt.
+\addcontentsline{toc}{chapter}{Bibliography}
+%\nocite{*} %Auch nicht-zitierte BibTeX-Einträge werden angezeigt.
+\bibliography{literature/literature}%Eine Datei 'literatur.bib' wird hierfür benötigt.
+\bibliographystyle{acmurl}%Art der Ausgabe: plain / apalike / amsalpha / ...
+}
+
+%% Abbildungsverzeichnis
+%\clearpage
+%\addcontentsline{toc}{chapter}{List of Figures}
+%\listoffigures
+
+%% Tabellenverzeichnis
+%\clearpage
+%\addcontentsline{toc}{chapter}{List of Tables}
+%\listoftables
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ANHÄNGE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\input{chapters/99_appendix}
+
+\end{document}

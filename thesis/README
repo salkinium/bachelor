@@ -1,0 +1,9 @@
+To build this you have to clone the thesis-tex.git repository to some appropriate place.
+For instance, put it in ~/.tex/tex/thesis-tex [see note_1] and set the environment variables:
+  export TEXMFHOME="$HOME/.tex"
+  export TEXINPUTS=".:$HOME/.tex:"                          # that's needed for latex
+  export BSTINPUTS=".:$HOME/.tex/tex/thesis-tex/styles:"    # that's needed for bibtex
+If you have more comsys templates checked out, this might be useful to you:
+  export BSTINPUTS='.:'"$(ls -1d "$HOME"/.tex/tex/*/styles 2>/dev/null | tr '\n' ':')"
+
+note_1: The /tex subdirectory is necessary for tex to find the right files. However, the $HOME/.tex part is abitrary. It defaults to $HOME/texmf and if you don't mind having a texmf directory in your home, you can put stuff there. In that case, you wont need to set TEXMFHOME,TEXINPUTS nor BSTINPUTS.
