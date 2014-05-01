@@ -14,18 +14,19 @@
 #define	XPCC_LOG_LEVEL xpcc::log::ERROR
 
 task::TemperatureControl::Point
-task::TemperatureControl::supportingPoints[5] =
+task::TemperatureControl::supportingPoints[6] =
 {
 	{0 , 0},
 	{30, 30},
-	{50, 50.5},
-	{70, 72},
-	{90, 94}
+	{50, 50},
+	{70, 70},
+	{90, 90},
+	{110, 110}
 };
 
 task::TemperatureControl::TemperatureControl()
 :	targetTemperature(0), timer(250), tPid(10, 0.4, 1.0, 0.7, 100),
- 	correctedTemperature(supportingPoints, 5)
+ 	correctedTemperature(supportingPoints, 6)
 {
 }
 
@@ -33,6 +34,10 @@ void
 task::TemperatureControl::setTemperature(float temperature)
 {
 	targetTemperature = correctedTemperature.interpolate(temperature);
+	if (targetTemperature > 90)
+	{
+		targetTemperature = 90;
+	}
 }
 
 float
@@ -64,7 +69,7 @@ task::TemperatureControl::update()
 
 			heater.setPower(value < 0 ? 0 : value);
 			uint8_t fanPower = value < 40 ? 40 : value;
-			if (value < -50) fanPower = 0;
+			//if (value < -50) fanPower = 0;
 			heaterFan.setPower(fanPower);
 		}
 	}

@@ -48,7 +48,7 @@ private:
 	// manual correction of heat flow from inside to outside
 	// this is tested for about 20C outside temperature
 	typedef xpcc::Pair<int8_t, float> Point;
-	static Point supportingPoints[5];
+	static Point supportingPoints[6];
 
 	xpcc::interpolation::Linear<Point> correctedTemperature;
 };
