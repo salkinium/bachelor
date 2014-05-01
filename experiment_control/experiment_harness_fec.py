@@ -45,8 +45,8 @@ if __name__ == "__main__":
     #  0 | A7027DQP | /dev/ttyUSB1
     #  1 | A7027DJS | /dev/ttyUSB3
 
-    boxmanager.add_box(0, "/dev/ttyUSB0:telos", "/dev/ttyUSB1", -2)
-    boxmanager.add_box(1, "/dev/ttyUSB2:telos", "/dev/ttyUSB3", -2)
+    boxmanager.add_box(0, "/dev/ttyUSB0:telos", "/dev/ttyUSB1", -1)
+    boxmanager.add_box(1, "/dev/ttyUSB2:telos", "/dev/ttyUSB3", -1)
 
     scriptmanager = ScriptManager(boxmanager)
     for arg in sys.argv[1:]:
