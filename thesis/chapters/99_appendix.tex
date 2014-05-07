@@ -7,3 +7,64 @@
 	
 	\acro{MOSFET}{Metal–Oxide–Semiconductor Field-Effect Transistor}
 \end{acronym}
+
+
+\begin{table}
+	\subtable[Average Packet Reception Rate in \%]
+	{
+		\begin{tabularx}{\linewidth}{|c*{4}{|d{-1}}|}
+		\hline
+		\T \cellcolor{slightgray} Receiver	& \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 0} & \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 1} & \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 2}	& \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 3}\\
+		\hline
+
+		\cellcolor{moteblue}\T 4 & \cellcolor{slightred} 3.2  & \cellcolor{slightgreen} 96.9 & \cellcolor{slightred} 5.5  & \cellcolor{slightgreen} 100.0 \B\\
+		\hline
+		\cellcolor{motered}\T 5 & 81.9 & 87.2 & \cellcolor{slightred} 0.4  & \cellcolor{slightgreen} 99.2 \B\\
+		\hline
+		\cellcolor{moteblue}\T 6 & \cellcolor{slightgreen} 98.1 & 75.2 & 89.9 & \cellcolor{slightred} 0.1  \B\\
+		\hline
+		\cellcolor{motered}\T 7 & \cellcolor{slightgreen} 96.2 & \cellcolor{slightred} 2.0    & 57.3 & 44.0	\B\\
+		\hline 
+		\end{tabularx}
+	}
+
+	\subtable[Average Error Free Packets Reception Rate in \%]
+	{
+		\begin{tabularx}{\linewidth}{|c*{4}{|d{-1}}|}
+		\hline
+		\T \cellcolor{slightgray} Receiver	& \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 0} & \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 1} & \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 2}	& \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 3}\\
+		\hline
+
+		\cellcolor{moteblue}\T 4 & \cellcolor{slightred} 0.0  & 69.5 & \cellcolor{slightred} 2.7  & \cellcolor{slightgreen} 100.0 \B\\
+		\hline
+		\cellcolor{motered}\T 5 & \cellcolor{slightred} 7.1 & 10.8 & \cellcolor{slightred} 0.0  & 88.3 \B\\
+		\hline
+		\cellcolor{moteblue}\T 6 & 83.8 & \cellcolor{slightred} 2.1 & 22.1 & \cellcolor{slightred} 0.0  \B\\
+		\hline
+		\cellcolor{motered}\T 7 & \cellcolor{slightgreen} 96.0 & \cellcolor{slightred} 0.1    & \cellcolor{slightred} 9.8 & \cellcolor{slightred} 1.4	\B\\
+		\hline 
+		\end{tabularx}
+	}
+
+	\subtable[Median LQI values]
+	{
+		\begin{tabularx}{\linewidth}{|c*{4}{|d{-1}}|}
+		\hline
+		\T \cellcolor{slightgray} Receiver	& \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 0} & \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 1} & \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 2}	& \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 3}\\
+		\hline
+
+		\cellcolor{moteblue}\T 4 & \cellcolor{slightred} 50 & 79 & \cellcolor{slightred} 77 & \cellcolor{slightgreen} 101 \B\\
+		\hline
+		\cellcolor{motered}\T 5 & 71 & 72 & \cellcolor{slightred} 49  & 87 \B\\
+		\hline
+		\cellcolor{moteblue}\T 6 & 85 & 67 & 73 & \cellcolor{slightred} 35  \B\\
+		\hline
+		\cellcolor{motered}\T 7 & \cellcolor{slightgreen} 106 & \cellcolor{slightred} \cellcolor{slightred} 44 & 65 & 61	\B\\
+		\hline 
+		\end{tabularx}
+	}
+
+	\caption{Complete table of link qualifiers from the experiment described in Subsection~\ref{subsec:effects_of_board_layout}. Good links (PRR > 90\%) are marked green, bad links (PRR < 10\%) red. Notice the distinction between PRR in Table (a) and \emph{error-free} PRR in Table (b) in comparison to LQI in Table (c).}
+
+	\label{tab:8mote_link_qualities}
+\end{table}

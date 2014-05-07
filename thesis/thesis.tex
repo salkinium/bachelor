@@ -16,6 +16,12 @@
 \definecolor{Orange}{rgb}{1,0.5,0}
 \newcommand{\todo}[1]{\textsf{\textbf{\textcolor{Orange}{[[#1]]}}}}
 
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing,calc,shapes,shapes.geometric,patterns,snakes,matrix}
+
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+
 \usepackage[printonlyused]{acronym}
 \renewcommand{\bflabel}[1]{\normalfont{\normalsize{#1}}\hfill} % keine serifenlose schrift für acronym
 %\usepackage{acronym}
@@ -27,7 +33,6 @@
 \floatname{listing}{Listing}
 
 \usepackage[hang,center,nooneline]{caption}
-%\usepackage{subcaption}
 \captionsetup[figure]{font={small,sf}}
 \captionsetup[table]{font={small,sf}}
 \captionsetup[listing]{font={small,sf}}
@@ -119,8 +124,12 @@
 \newcommand\T{\rule{0pt}{2.5ex}\rule[-1.0ex]{0pt}{0pt}}
 \newcommand\B{\rule[-1.0ex]{0pt}{0pt}}
 
-\definecolor{slightgray}{gray}{.90} 
-
+\definecolor{slightgray}{gray}{.90}
+\colorlet{slightred}{red!10}
+\colorlet{slightgreen}{green!10}
+\colorlet{slightblue}{blue!10}
+\colorlet{moteblue}{blue!60!black!20}
+\colorlet{motered}{red!60!black!20}
 
 %% Definitionen %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -186,6 +195,7 @@
 \mainmatter
 \include{chapters/01_introduction}
 \include{chapters/03_testbed}
+\include{chapters/04_experiments}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% LITERATUR UND ANDERE VERZEICHNISSE
