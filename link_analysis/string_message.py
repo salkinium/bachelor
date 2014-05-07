@@ -7,6 +7,11 @@
 # -----------------------------------------------------------------------------
 
 import dateutil.parser
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'experiment_control'))
+from formatter import MessageFormatter
 
 
 class StringMessage(object):
@@ -41,6 +46,20 @@ class StringMessage(object):
     @property
     def is_reception(self):
         return self['mode'] == 'rx'
+
+    def format_for_log(self, properties=None):
+        filtered_keys = ['mode', 'id', 'timeout', 'temperature', 'seqnum', 'length', 'data', 'lqi', 'rssi', 'crc', 'timestamp']
+        filtered_values = {key: value for key, value in self.properties.items() if key in self.properties}
+        if 'data' in filtered_values:
+            filtered_values['data'] = map(int, filtered_values['data'])
+        if properties:
+            if properties['type'] == 'reed-solomon':
+                coder = "rs,{},{}".format(properties['coder'].n, properties['coder'].k)
+                filtered_values.update({'coder': coder})
+
+        log_string = MessageFormatter.format_dictionary(filtered_values)
+
+        return "timestamp={}\t{}\n".format(str(self.properties['timestamp'])[:-3].replace(".", ","), log_string)
 
     def __iter__(self):
         for key in self.properties:
