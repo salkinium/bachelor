@@ -30,21 +30,56 @@ class Link:
                 rx['seqnum'] == self.tx['seqnum']:
             self.valid_rx.append(rx)
 
+            # bit errors
+
             xor = [rx['data'][ii] ^ self.tx['data'][ii] for ii in range(10, len(self.tx['data']))][:-1]
+            xor_bytes = map((lambda d: 1 if d != 0 else 0), xor)
             xor_bits = map((lambda d: bin(d).count("1")), xor)
-            errors = sum(xor_bits)
+            bit_errors = sum(xor_bits)
+            byte_errors = sum(xor_bytes)
+
             rx['xor'] = xor
-            rx['errors'] = errors
+            rx['bit_errors'] = bit_errors
+            rx['byte_errors'] = byte_errors
+
+            # bit errors per symbol
+            symbol_errors = []
+            for _ in range(16):
+                symbol_errors.append([0.0] * 4)
+
+            for ii in range(len(xor)):
+                td = self.tx['data'][10+ii]
+                xd = xor[ii]
+                for symbol in [[(td & 0xf0) >> 4, (xd & 0xf0) >> 4], [td & 0x0f, xd & 0x0f]]:
+                    for jj in range(4):
+                        if ((symbol[1] >> jj) & 0x01) == 1:
+                            # ordered from LSB (0) to MSB (3)
+                            symbol_errors[symbol[0]][jj] += 1
+
+            for symbol in range(16):
+                occurance = 0
+                for td in self.tx['data'][10:-1]:
+                    if ((td & 0xf0) == (symbol << 4)):
+                        occurance += 1
+                    if ((td & 0x0f) == symbol):
+                        occurance += 1
+
+                if occurance >= 2:
+                    for bit in range(4):
+                        symbol_errors[symbol][bit] /= occurance
+
+            rx['symbol_errors'] = symbol_errors
 
         else:
-            if rx['timeout'] == 0:
-                self.invalid_rx.append(rx)
-            else:
+            if rx['timeout'] == 1:
                 self.timeout_rx.append(rx)
+            else:
+                self.invalid_rx.append(rx)
+
 
     @property
     def is_valid(self):
-        return len(self.valid_rx)
+        return (len(self.valid_rx) + len(self.timeout_rx) > 0)
 
     @property
     def has_error(self):
@@ -69,5 +104,4 @@ class Link:
         return self.__str__()
 
     def __str__(self):
-        return ("Message(\t{} )\n".format(",\n".join(["'%s': '%s'" % (p, self.properties[p]) for p in self.properties]))
-                .replace("\n", "\n\t"))
+        return ("Link(\t{} )\n".format("\n".join([self.tx].extend(self.valid_rx))))

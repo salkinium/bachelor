@@ -128,8 +128,8 @@ class MessageVisualizer(Process, object):
             if rx['timeout'] == 0:
                 self.rssi_values[rx_id][0] = rx['rssi']
                 self.lqi_values[rx_id][0] = rx['lqi']
-                if 'errors' in rx:
-                    self.error_values[rx_id][0] = rx['errors']
+                if 'bit_errors' in rx:
+                    self.error_values[rx_id][0] = rx['bit_errors']
             else:
                 self.rssi_values[rx_id][0] = 0
                 self.lqi_values[rx_id][0] = 0
