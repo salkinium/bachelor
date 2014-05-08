@@ -13,17 +13,6 @@ This redundant placement shown in Figure~\ref{fig:8_mote_setup} was chosen so th
 Over the course of six days the four transmitters sent 563.500 messages each, totalling 2.254.000 transmitted messages at power setting 2. Of those transmitted messages a total of 5.280.369 messages were received, 2.497.744 of which had at least one bit error.
 The experiment was located in a large climate-controlled server room in the basement, therefore the temperature remained within $20-25\,^{\circ}\mathrm{C}$ with no other changes in the environment.
 
-Note that the CM5000 motes required to be physically closer to the receivers at the same power setting to have similar link quality as the original motes.
-This might be hinting at a difference in range between the two hardware layouts, however, our experiment was not setup to systematically investigate range.
-
-In the initial evaluation we noted some significant differences in the quality of some links, were the co-located transmitters are sending to the same receiver.
-For example, the link 3-5 is of very good quality with over 99\% PRR, however link 2-5 shows quite the opposite with less than 1\% PRR, even though both transmitters a located at the same distance and angle from the receiver.
-This confirms the findings of Baccour~\etal~\cite{Baccour2012}, specifically that link quality is anisotropic, \ie the communication range exhibits a nonspherical pattern.
-More exhibitions of this behavior can be found in the complete table of link qualifiers in the Appendix as Table~\ref{tab:8mote_link_qualities}.
-
-\todo{explain and show bit patterns as found by Schmidt~\etal}
-\todo{no difference found between hardware}
-
 \begin{figure}[H]
 	\centering
 	\begin{tikzpicture}
@@ -66,3 +55,59 @@ More exhibitions of this behavior can be found in the complete table of link qua
 	\caption{Experiment setup from above with four transmitters and receivers.}
 	\label{fig:8_mote_setup}
 \end{figure}
+
+Note that the CM5000 motes required to be physically closer to the receivers at the same power setting to have similar link quality as the original motes.
+This might be hinting at a difference in range between the two hardware layouts, however, our experiment was not setup to systematically investigate range.
+
+In the initial evaluation we noted some significant differences in the quality of some links, were the co-located transmitters are sending to the same receiver.
+For example, the link 3-5 is of very good quality with over 99\% PRR, however link 2-5 shows quite the opposite with less than 1\% PRR, even though both transmitters a located at the same distance and angle from the receiver.
+This confirms the findings of Baccour~\etal~\cite{Baccour2012}, specifically that link quality is anisotropic, \ie the communication range exhibits a nonspherical pattern.
+More exhibitions of this behavior can be found in the complete table of link qualifiers in the Appendix as Table~\ref{tab:8mote_link_qualities}.
+
+Further analysis revealed the same bit and symbol error patterns as first discovered by Schmidt~\etal~\cite{Schmidt2013}, which state that within any transmitted symbol, the first three MSB are more likely to break than the LSB and that symbols with the MSB set to 1 (\ie 0x8 to 0xF) are more likely to brea.
+The probability of bit errors are plotted in Figure~\ref{fig:8mote_bit_errors}, with the first 12 bytes (96 bits) consisting of the message header with partially fixed content and the remaining 80 bytes are the constant payload, made up of two 32 byte patterns of 0x0000, 0x1111, ..., 0xFFFF, and one 16 byte pattern of 0x00, 0x11, ..., 0xFF.
+
+\begin{figure}[H]
+	\subfigure[XL symbol influence.] {
+    	\includegraphics[width=0.5\columnwidth]{figures/8mote_0-5_xor}
+    	\label{fig:8mote_bit_errors_xl}
+    }
+    \subfigure[L symbol influence] {
+	    \includegraphics[width=0.5\columnwidth]{figures/8mote_1-6_xor}
+	    \label{fig:8mote_bit_errors_l}
+	}
+	\subfigure[M influence.] {
+	    \includegraphics[width=0.5\columnwidth]{figures/8mote_2-6_xor}
+	    \label{fig:8mote_bit_errors_m}
+	}
+	\subfigure[S influence.] {
+	    \includegraphics[width=0.5\columnwidth]{figures/8mote_2-7_xor}
+	    \label{fig:8mote_bit_errors_s}
+	}
+	\caption{Four magnitudes of symbol content influence on bit error pattern.}
+	\label{fig:8mote_bit_errors}
+\end{figure}
+
+We were able to confirm the findings of Schmidt~\etal{} and extend them with a classification of the influence of symbols on bit error probability.
+The subfigures show four magnitudes of this phenomenon, ranging from and extreme to almost no difference between symbols, named XL, L, M and S.
+The remaining links can be classified into these four categories as done in Table~\ref{tab:8mote_bit_error_link_classification}.
+
+\begin{table}[H]
+	\begin{tabularx}{\linewidth}{|c*{4}{|c}|}
+	\hline
+	\T \cellcolor{slightgray} Receiver	& \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 0} & \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 1} & \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 2}	& \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 3}\\
+	\hline
+
+	\cellcolor{moteblue}\T 4 & S  & n/a & n/a & n/a \B\\
+	\hline
+	\cellcolor{motered}\T  5 & XL & XL  & L   & XL  \B\\
+	\hline
+	\cellcolor{moteblue}\T 6 & XL & L   & M   & n/a \B\\
+	\hline
+	\cellcolor{motered}\T  7 & L  & n/a & S   & L   \B\\
+	\hline 
+	\end{tabularx}
+
+	\caption{Classification of all links with enough bit errors (otherwise marked with n/a).}
+	\label{tab:8mote_bit_error_link_classification}
+\end{table}
