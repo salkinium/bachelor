@@ -20,9 +20,8 @@ if __name__ == "__main__":
         link_file = LinkFile(arg)
 
         analyzer_ab, analyzer_ba = link_file.get_analyzers()
-        link_file = None
 
-        analyzer_ab.save_all_plots()
-        analyzer_ba.save_all_plots()
+        analyzer_ab.save_all_cached_plots()
+        analyzer_ba.save_all_cached_plots()
 
 

@@ -10,11 +10,24 @@ from string_message import StringMessage
 from link import Link
 from link_analyzer import Analyzer
 
+def enum(**enums):
+    return type('Enum', (), enums)
+
 class LinkFile:
+
+    Selector = enum(AB=0, BA=1)
 
     def __init__(self, filename):
         self.filename = filename
 
+        self.id_a = "A"
+        self.id_b = "B"
+
+        self._links_ab = None
+        self._links_ba = None
+
+    def read_all(self):
+        print "Reading entire LinkFile, please wait..."
         messages = []
         with open(self.filename, 'r') as linkfile:
             for line in linkfile:
@@ -38,7 +51,6 @@ class LinkFile:
                 print msg
 
         self.id_a = links[0].tx['id']
-        self.id_b = None
 
         for link in links:
             if link.tx['id'] == self.id_a:
@@ -46,15 +58,35 @@ class LinkFile:
                     self.id_b = rx['id']
                     break
 
-        self.links_ab = []
-        self.links_ba = []
+        self._links_ab = []
+        self._links_ba = []
 
         for link in links:
             if link.tx['id'] == self.id_a:
                 # transmitting from 0 to 1
-                self.links_ab.append(link)
+                self._links_ab.append(link)
             else:
-                self.links_ba.append(link)
+                self._links_ba.append(link)
+
+        print "Done reading LinkFile"
+
+    @property
+    def links_ab(self):
+        if self._links_ab == None:
+            self.read_all()
+        return self._links_ab
+
+    @property
+    def links_ba(self):
+        if self._links_ba == None:
+            self.read_all()
+        return self._links_ba
+
+    def get_links_for_selector(self, selector):
+        if selector == LinkFile.Selector.AB:
+            return self.links_ab
+        elif selector == LinkFile.Selector.BA:
+            return self.links_ba
 
     @property
     def string_ab(self):
@@ -65,10 +97,10 @@ class LinkFile:
         return "{}-{}".format(self.id_b, self.id_a)
 
     def get_analyzer_ab(self):
-        return Analyzer(self.links_ab, "{}_{}".format(self.filename, self.string_ab))
+        return Analyzer(self, LinkFile.Selector.AB, "{}_{}".format(self.filename, self.string_ab))
 
     def get_analyzer_ba(self):
-        return Analyzer(self.links_ba, "{}_{}".format(self.filename, self.string_ba))
+        return Analyzer(self, LinkFile.Selector.BA, "{}_{}".format(self.filename, self.string_ba))
 
     def get_analyzers(self):
         return self.get_analyzer_ab(), self.get_analyzer_ba()
