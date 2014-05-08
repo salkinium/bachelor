@@ -104,4 +104,4 @@ class Link:
         return self.__str__()
 
     def __str__(self):
-        return ("Link(\t{} )\n".format("\n".join([self.tx].extend(self.valid_rx))))
+        return ("Link(\t[1, {}] )\n".format(len(self.rx)))

@@ -29,14 +29,14 @@ class Simulator:
 
     def _simulate_link(self, link, payload, symbol_errors):
         for ii in range(len(payload)):
-            link.tx['data'][10 + 13 + ii] = payload[ii]
+            link.tx['data'][10 + 12 + ii] = payload[ii]
         new_link = Link(link.tx)
 
         corrupted_payload = self._corrupt_payload(payload, symbol_errors)
 
         for rx in link.valid_rx:
             for ii in range(len(corrupted_payload)):
-                rx['data'][10 + 13 + ii] = corrupted_payload[ii]
+                rx['data'][10 + 12 + ii] = corrupted_payload[ii]
             new_link.add_rx(rx)
         for rx in link.timeout_rx:
             new_link.add_rx(rx)
