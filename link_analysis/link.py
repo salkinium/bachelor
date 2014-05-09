@@ -6,6 +6,12 @@
 # license. See the file `LICENSE` for the full license governing this code.
 # -----------------------------------------------------------------------------
 
+import sys
+import os
+
+sys.path.insert(0,os.path.join(os.path.dirname(__file__), '..', 'experiment_control', 'rs'))
+from rs import RSCoder
+
 
 class Link:
     """ Link
@@ -14,12 +20,23 @@ class Link:
     Does validation, error detection and evaluation of links.
     """
 
-    def __init__(self, tx):
+    def __init__(self, tx, coder=None):
         assert tx.is_transmission
         self.tx = tx
         self.valid_rx = []
         self.invalid_rx = []
         self.timeout_rx = []
+        self.coder = None
+        if 'coder' in self.tx:
+            self.coder = coder
+            coder_info = self.tx['coder'].split(",")
+            if coder_info[0] == "rs":
+                n, k = int(coder_info[1]), int(coder_info[2])
+                self.tx['coded_payload'] = self.tx['data'][10 + 12:10 + 12 + self.coder.k]
+                if self.coder == None or self.coder.n != n or self.coder.k != k:
+                    # really inefficient, don't do that
+                    self.coder = RSCoder(n, k)
+
 
     def add_rx(self, rx):
         assert rx.is_reception
@@ -31,16 +48,20 @@ class Link:
             self.valid_rx.append(rx)
 
             # bit errors
-
             xor = [rx['data'][ii] ^ self.tx['data'][ii] for ii in range(10, len(self.tx['data']))][:-1]
-            xor_bytes = map((lambda d: 1 if d != 0 else 0), xor)
+            xor_string = "".join(map((lambda d: bin(d)[2:].zfill(8)), xor))
             xor_bits = map((lambda d: bin(d).count("1")), xor)
-            bit_errors = sum(xor_bits)
+            bit_errors = xor_string.count("1")
+
+            # byte errors
+            xor_bytes = map((lambda d: 1 if d != 0 else 0), xor)
             byte_errors = sum(xor_bytes)
 
-            rx['xor'] = xor
-            rx['bit_errors'] = bit_errors
-            rx['byte_errors'] = byte_errors
+            # burst bit errors
+            burst_errors = [0] * (16+1)
+            for burst in reversed(range(1, 16+1)):
+                burst_errors[burst] = xor_string.count("1" * burst)
+                xor_string = xor_string.replace("1" * burst, "0" * burst)
 
             # bit errors per symbol
             symbol_errors = []
@@ -56,6 +77,7 @@ class Link:
                             # ordered from LSB (0) to MSB (3)
                             symbol_errors[symbol[0]][jj] += 1
 
+            # normalize for symbol occurance
             for symbol in range(16):
                 occurance = 0
                 for td in self.tx['data'][10:-1]:
@@ -68,7 +90,32 @@ class Link:
                     for bit in range(4):
                         symbol_errors[symbol][bit] /= occurance
 
+            rx['xor'] = xor
+            rx['bit_errors'] = bit_errors
+            rx['byte_errors'] = byte_errors
+            rx['burst_errors'] = burst_errors
             rx['symbol_errors'] = symbol_errors
+
+            if self.coder != None:
+                rx_coded_payload_with_parity = rx['data'][10+12:-1]
+                tx_coded_payload = self.tx['coded_payload']
+
+                rx_decoded_payload = map(ord, self.coder.decode(map(chr, rx_coded_payload_with_parity), nostrip=True))
+                rx['decoded_payload'] = rx_decoded_payload
+
+                # these are all the bit errors that RS missed!
+                decoded_bit_errors = map(lambda l, r: bin(l ^ r).count("1"), tx_coded_payload, rx_decoded_payload)
+
+                rx['decoded_bit_errors'] = sum(decoded_bit_errors)
+                if rx['decoded_bit_errors'] != 0:
+                    sys.stdout.write(':{}'.format(rx['decoded_bit_errors']))
+
+                rx_coded_payload = rx['coded_payload'] = rx_coded_payload_with_parity[:self.coder.k]
+                # these are all the bit errors, that RS was able to correct
+                corrected_bit_errors = map(lambda l, r: bin(l ^ r).count("1"), rx_coded_payload, rx_decoded_payload)
+                rx['coded_bit_errors'] = sum(map(lambda b: bin(b).count("1"), xor[12:12+self.coder.k]))
+                rx['corrected_bit_errors'] = sum(corrected_bit_errors)
+                # print rx['coded_bit_errors'], rx['corrected_bit_errors'], rx['decoded_bit_errors']
 
         else:
             if rx['timeout'] == 1:

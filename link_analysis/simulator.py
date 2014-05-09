@@ -109,15 +109,15 @@ class Simulator:
 
         for link in range(number_of_links):
             try:
-                if link % 100 == 0:
-                    print link
-                else:
-                    sys.stdout.write('.')
                 symbol_error = self._calculate_symbol_errors(link, self.window_size)
                 simulated_link = self._simulate_link(self.links[link], payload.data, symbol_error)
                 self._write_link_to_log(simulated_link, payload.properties)
             except:
-                print link,
+                print link+1,
+            if (link + 1) % 100 == 0:
+                print link + 1
+            else:
+                sys.stdout.write('.')
 
     def __hash__(self):
         return str(self)

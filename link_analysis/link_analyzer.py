@@ -41,11 +41,13 @@ class Analyzer(object):
         self.logger.addHandler(ch)
 
         self.raw_file_name = "{}_raw.txt".format(self.basename)
+        self.raw_dict = {}
         if os.path.isfile(self.raw_file_name):
             with open(self.raw_file_name, 'r') as raw_file:
-                self.raw_dict = json.load(raw_file)
-        else:
-            self.raw_dict = {}
+                try:
+                    self.raw_dict = json.load(raw_file)
+                except:
+                    print "Error: raw file corrupted!"
 
         self.ranges = {'rssi': range(-100, -70),
                        'lqi': range(20, 115),
@@ -70,6 +72,7 @@ class Analyzer(object):
     def get_array_of_property(self, key):
         nkey = key.lower().replace(" ", "_")
         if self.links == None:
+            print "Requiring array of property for key '{}'".format(key)
             self.links = self.link_file.get_links_for_selector(self.selector)
 
         results = []
@@ -108,9 +111,9 @@ class Analyzer(object):
             mean = np.mean(data)
             std = np.std(data)
 
-            ax.axvline(mean, color='r', linewidth=2)
-            ax.axvline(mean - std, color='b', linewidth=1, linestyle="--")
-            ax.axvline(mean + std, color='b', linewidth=1, linestyle="--")
+            ax.axvline(mean, color='k', linewidth=1.75)
+            ax.axvline(mean - std, color='0.5', linewidth=1, linestyle="-")
+            ax.axvline(mean + std, color='0.5', linewidth=1, linestyle="-")
 
             hist = self.get_normed_histogram_for_key(nkey)
             return fig, ax, {'hist': hist[0], 'bins': hist[1]}
@@ -142,8 +145,9 @@ class Analyzer(object):
 
         if len(bits_array):
 
-            if error_sum >= 2:
-                normed_bits_array = map(lambda b: float(b)/error_sum, bits_array)
+            # if error_sum >= 2:
+            #     normed_bits_array = map(lambda b: float(b)/error_sum, bits_array)
+            normed_bits_array = bits_array
 
             fig, ax = plt.subplots(1)
             lines = ax.plot(range(len(normed_bits_array)), normed_bits_array)
@@ -151,18 +155,19 @@ class Analyzer(object):
 
             # ax.grid(b=True, which='major', color='0.90', linestyle='-')
             ax.set_axisbelow(True)
-            ax.add_patch(Rectangle((0, 0), 12*8, 1, color='0.90'))
+            ax.add_patch(Rectangle((0, 0), 12*8, 10000, color='0.90'))
             ax.set_xlim(xmin=0, xmax=max_length*8)
-            ax.set_ylim(ymin=0, ymax=0.0025)
+            # ax.set_ylim(ymin=0, ymax=0.0025)
             plt.xticks(range(12*8, max_length*8, 64), (range(0, max_length*8, 64)))
-            ax.set_ylabel("Frequency of bit errors")
-            ax.set_xlabel("Bit position")
+            ax.set_ylabel("Frequency of bit errors", fontsize=18)
+            ax.set_xlabel("Bit position", fontsize=18)
             return fig, ax, {'errors': bits_array, 'sum': error_sum}
 
     def get_time_plot_values_for_key(self, key):
         nkey = key.lower().replace(" ", "_")
         results = {'time': [], 'values': []}
         if self.links == None:
+            print "Requiring time values for key '{}'".format(key)
             self.links = self.link_file.get_links_for_selector(self.selector)
 
         for link in self.links:
@@ -177,17 +182,18 @@ class Analyzer(object):
             for ii in range(len(values['time'])):
                 mean = np.mean(values['values'][ii])
                 std = np.std(values['values'][ii], ddof=1)
+
                 values['mean'].append(mean)
                 values['std_l'].append(max(lower, (mean - std)) if lower != None else mean - std)
                 values['std_u'].append(min(upper, (mean - std)) if upper != None else mean + std)
 
             fig, ax = plt.subplots(1)
-            lines = ax.plot_date(values['time'], values['mean'], c='r', linestyle='-',
-                                 markersize=0, linewidth=2)
-            lines = ax.plot_date(values['time'], values['std_u'], c='b', linestyle='--',
+            lines = ax.plot_date(values['time'], values['std_u'], c='0.5', linestyle='-',
                                  markersize=0, linewidth=1)
-            lines = ax.plot_date(values['time'], values['std_l'], c='b', linestyle='--',
+            lines = ax.plot_date(values['time'], values['std_l'], c='0.5', linestyle='-',
                                  markersize=0, linewidth=1)
+            lines = ax.plot_date(values['time'], values['mean'], c='k', linestyle='-',
+                                 markersize=0, linewidth=1.75)
             fig.autofmt_xdate()
             return fig, ax
 
@@ -209,30 +215,99 @@ class Analyzer(object):
                     index += 1
 
             fig, ax = self.create_mean_time_plot(accumulated_values, 0 if 'errors' in nkey else None)
-            lines = ax.plot_date(values['time'], values['values'], markersize=1, c='k')
+            # lines = ax.plot_date(values['time'], values['values'], markersize=1, c='k')
             ax.set_ylim(ymin=min(self.ranges[nkey]), ymax=max(self.ranges[nkey]))
             ax.set_ylabel(key)
 
             return fig, ax
 
-    def create_accumulated_inverted_time_plot(self, key='timeout'):
-        nkey = key.lower().replace(" ", "_")
-        values = self.get_time_plot_values_for_key(nkey)
+    def create_prr_plot(self):
+        prr = self._read_from_raw_file('prr')
+        if prr == None:
+            # we need to know how many messages we sent, to be able to normalize all PRRs
+            time_messages = self.get_time_plot_values_for_key('timeout')
 
-        if len(values['time']) > 0:
-            accumulated_values = {'time': [values['time'][0]], 'values': [values['values'][0]]}
-            index = 0
-            for ii in range(len(values['time'])):
-                if values['time'][ii] <= accumulated_values['time'][index]+datetime.timedelta(minutes=1):
-                    accumulated_values['values'][index] += 0 if values['values'][ii] == 1 else 1
-                else:
-                    accumulated_values['time'].append(values['time'][ii])
-                    accumulated_values['values'].append(values['values'][ii])
-                    index += 1
+            # if the key 'bit_errors' is in the rx message, then there was no timeout, and the message is valid
+            # this can therefore be used for two PRRs: general PRR and error-free PRR
+            time_bit_errors = self.get_time_plot_values_for_key('bit_errors')
+
+            # we are also interested in how good the coder was able to salvage the payload and make a PRR out of that
+            # if no code was used, this will be empty
+            time_decoded_bit_errors = self.get_time_plot_values_for_key('decoded_bit_errors')
+
+            prr = {'time': [],
+                   'sent': [1],
+                   'received': [0],
+                   'received_without_error': [0],
+                   'decoded_without_error': [0]}
+
+            if len(time_messages['time']) > 0:
+                # - for all messages we are only interested, how many messages per minute were sent
+                # - for general PRR we are only interested, how many messages per minute were received
+                # - for error-free PRR we are interested, how many messages per minute were received without error
+                # - for general PRR we are only interested, how many messages per minute were received
+
+                prr['time'].append(time_messages['time'][0])
+
+                prr_index = 0
+                bit_error_index = 0
+                decoded_error_index = 0
+                delta_half = datetime.timedelta(seconds=7, milliseconds=500)
+                reference_time = prr['time'][0] + delta_half + delta_half
+
+                for time_index in range(len(time_messages['time'])):
+                    if time_messages['time'][time_index] <= reference_time:
+                        prr['sent'][prr_index] += 1
+                        while (bit_error_index < len(time_bit_errors['time']) and
+                                       time_bit_errors['time'][bit_error_index] <= reference_time):
+                            prr['received'][prr_index] += 1
+                            prr['received_without_error'][prr_index] += 1 if time_bit_errors['values'][bit_error_index] == 0 else 0
+                            bit_error_index += 1
+                        while (decoded_error_index < len(time_decoded_bit_errors['time']) and
+                                       time_decoded_bit_errors['time'][decoded_error_index] <= reference_time):
+                            prr['decoded_without_error'][prr_index] += 1 if time_decoded_bit_errors['values'][decoded_error_index] == 0 else 0
+                            decoded_error_index += 1
+                    else:
+                        prr['time'].append(reference_time - delta_half)
+                        prr['sent'].append(1)
+                        prr['received'].append(0)
+                        prr['received_without_error'].append(0)
+                        prr['decoded_without_error'].append(0)
+
+                        prr_index += 1
+                        reference_time += delta_half + delta_half
+
+                prr['time'] = map(lambda dt: int(dt.strftime("%s")), prr['time'])
+                self._write_to_raw_file('prr', prr)
+
+        if len(prr['time']) > 0:
+
+            prr['time'] = map(lambda dt: datetime.datetime.fromtimestamp(dt), prr['time'])
+
+            # normalize for all sent messages
+            for ii in range(len(prr['time'])):
+                all_sent = prr['sent'][ii]
+                if all_sent > 0:
+                    prr['received'][ii] = float(prr['received'][ii]) / all_sent
+                    prr['received_without_error'][ii] = float(prr['received_without_error'][ii]) / all_sent
+                    prr['decoded_without_error'][ii] = float(prr['decoded_without_error'][ii]) / all_sent
 
             fig, ax = plt.subplots(1)
-            # fig, ax = self.create_mean_time_plot(accumulated_values, 0)
-            lines = ax.plot_date(accumulated_values['time'], accumulated_values['values'], markersize=1, c='k')
+            zeros = np.zeros(len(prr['time']))
+            ones = np.ones(len(prr['time']))
+
+            # ax.fill_between(prr['time'], prr['decoded_without_error'], where=prr['decoded_without_error'] >= zeros, color='0.8', interpolate=True)
+            # ax.fill_between(prr['time'], prr['received_without_error'], where=prr['received_without_error'] >= zeros, color='1', interpolate=True)
+
+            ax.fill_between(prr['time'], y1=prr['decoded_without_error'], y2=ones, where=prr['decoded_without_error'] < ones, color='red', interpolate=True)
+            ax.fill_between(prr['time'], y1=prr['received'], y2=ones, where=prr['received'] < ones, color='0.5', interpolate=True)
+
+            # lines = ax.plot_date(prr['time'], prr['received'], markersize=1.5, c='b', linestyle='-', linewidth=1)
+            #
+            # lines = ax.plot_date(prr['time'], prr['decoded_without_error'], markersize=1.5, c='r', linestyle='-', linewidth=1)
+            lines = ax.plot_date(prr['time'], prr['received_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.5)
+
+            ax.set_ylim(ymin=0, ymax=1)
             ax.set_ylabel('PRR')
             fig.autofmt_xdate()
             return fig, ax
@@ -252,14 +327,14 @@ class Analyzer(object):
     def create_plot_for_key(self, key):
         nkey = key.lower().replace(" ", "_")
         plot = None
-        if nkey in ['rssi', 'lqi', 'bit_errors', 'byte_errors', 'burst_errors', 'temperature']:
+        if nkey in ['rssi', 'lqi', 'bit_errors', 'byte_errors', 'temperature']:
             plot = self.create_mean_time_plot_for_key(key)
         elif nkey in ['hist_rssi', 'hist_lqi', 'hist_bit_errors', 'hist_byte_errors']:
             plot = self.create_histogram_plot_for_key(nkey)
         elif nkey in ['xor']:
             plot = self.create_xor_plot()
         elif nkey in ['prr']:
-            plot = self.create_accumulated_inverted_time_plot('timeout')
+            plot = self.create_prr_plot()
 
         return plot
 
@@ -283,7 +358,7 @@ class Analyzer(object):
 
     def save_all_cached_plots(self):
         keys = ['Hist RSSI', 'Hist LQI', 'Hist Bit Errors', 'Hist Byte Errors',
-                'Xor']
+                'Xor', 'PRR']
         for key in keys:
             self.save_plot_for_key(key)
 

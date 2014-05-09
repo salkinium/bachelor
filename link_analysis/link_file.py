@@ -9,9 +9,18 @@
 from string_message import StringMessage
 from link import Link
 from link_analyzer import Analyzer
+import sys
+import time
+import os
+import sys
+
+sys.path.insert(0,os.path.join(os.path.dirname(__file__), '..', 'experiment_control', 'rs'))
+from rs import RSCoder
+
 
 def enum(**enums):
     return type('Enum', (), enums)
+
 
 class LinkFile:
 
@@ -25,33 +34,61 @@ class LinkFile:
 
         self._links_ab = None
         self._links_ba = None
+        self._coder = None
+
+    def _create_coder_from_message(self, msg):
+        if 'coder' in msg:
+            coder_info = msg['coder'].split(",")
+            if coder_info[0] == "rs":
+                n, k = int(coder_info[1]), int(coder_info[2])
+                print "Creating RSCoder({}, {})".format(n,k)
+                return RSCoder(n, k)
 
     def read_all(self):
         print "Reading entire LinkFile, please wait..."
+
         messages = []
+        print "Parsing messages..."
+        start1 = time.time()
         with open(self.filename, 'r') as linkfile:
-            for line in linkfile:
+            for i, line in enumerate(linkfile):
                 try:
                     message = StringMessage(line)
                     messages.append(message)
                 except:
-                    print line
+                    print i + 1,
+                if (i + 1) % 1000 == 0:
+                    print i + 1
+                elif (i + 1) % 10 == 0:
+                    sys.stdout.write('.')
+        print "\nDone in {}s".format(time.time() - start1)
 
         links = []
         link = None
-
-        for msg in messages:
+        print "Linking messages..."
+        start = time.time()
+        for i, msg in enumerate(messages):
             try:
                 if msg.is_transmission:
-                    link = Link(msg)
+                    if self._coder == None:
+                        self._coder = self._create_coder_from_message(msg)
+
+                    link = Link(msg, self._coder)
                     links.append(link)
                 elif msg.is_reception:
-                    link.add_rx(msg)
+                    if link != None:
+                        link.add_rx(msg)
             except:
-                print msg
+                print i+1,
+            if (i + 1) % 100 == 0:
+                print i + 1
+            else:
+                sys.stdout.write('.')
+        print "\nDone in {}s".format(time.time() - start)
 
         self.id_a = links[0].tx['id']
-
+        print "Separating links by ids..."
+        start = time.time()
         for link in links:
             if link.tx['id'] == self.id_a:
                 for rx in link.valid_rx:
@@ -67,8 +104,9 @@ class LinkFile:
                 self._links_ab.append(link)
             else:
                 self._links_ba.append(link)
+        print "Done in {}s".format(time.time() - start)
 
-        print "Done reading LinkFile"
+        print "Done reading LinkFile in {}s".format(time.time() - start1)
 
     @property
     def links_ab(self):
