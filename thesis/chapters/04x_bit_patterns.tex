@@ -1,6 +1,7 @@
 \section{Bit Error Patterns}
 
-We designed two experiments to investigate the results of Schmidt~\etal~\cite{Schmidt2013}, in particular the effect of temperature and hardware revision on bit error distribution.
+We designed two experiments to investigate the results of Schmidt~\etal~\cite{Schmidt2013}.
+The first experiment was used to confirm their findings and also investigate the influence of hardware layout on bit error patterns, while the second experiment investigated the influence of temperature on these patterns.
 
 \subsection{Effects of board layout}
 \label{subsec:effects_of_board_layout}
@@ -9,8 +10,8 @@ While both versions we used are drop-in replacements for the Telos design devise
 Notable differences include the 3V voltage regulator and the layout of the radio circuitry.
 
 In the experiment a pair of CM5000 and original motes transmitted to two CM5000 and two original motes.
-This redundant placement shown in Figure~\ref{fig:8_mote_setup} was chosen so that the same transmission was received by both types.
-Over the course of six days the four transmitters sent 563.500 messages each, totalling 2.254.000 transmitted messages at power setting 2. Of those transmitted messages a total of 5.280.369 messages were received, 2.497.744 of which had at least one bit error.
+This redundant placement shown in Figure~\ref{fig:8mote_experiment_setup} was chosen so that the same transmission was received by both types.
+Over the course of six days the four transmitters sent 563.500 messages each, totalling 2.254.000 transmitted messages at power setting 2 (<-25dBm). Of those transmitted messages a total of 5.280.369 messages were received, 2.497.744 of which had at least one bit error.
 The experiment was located in a large climate-controlled server room in the basement, therefore the temperature remained within $20-25\,^{\circ}\mathrm{C}$ with no other changes in the environment.
 
 \begin{figure}[H]
@@ -52,8 +53,8 @@ The experiment was located in a large climate-controlled server room in the base
 		\node at (3, -1.5) {Transmitters};
 		\node at (10.5, -1.5) {Receivers};
 	\end{tikzpicture}
-	\caption{Experiment setup from above with four transmitters and receivers.}
-	\label{fig:8_mote_setup}
+	\caption{Experiment setup from above with four transmitters and four receivers.}
+	\label{fig:8mote_experiment_setup}
 \end{figure}
 
 Note that the CM5000 motes required to be physically closer to the receivers at the same power setting to have similar link quality as the original motes.
@@ -64,23 +65,23 @@ For example, the link 3-5 is of very good quality with over 99\% PRR, however li
 This confirms the findings of Baccour~\etal~\cite{Baccour2012}, specifically that link quality is anisotropic, \ie the communication range exhibits a nonspherical pattern.
 More exhibitions of this behavior can be found in the complete table of link qualifiers in the Appendix as Table~\ref{tab:8mote_link_qualities}.
 
-Further analysis revealed the same bit and symbol error patterns as first discovered by Schmidt~\etal~\cite{Schmidt2013}, which state that within any transmitted symbol, the first three MSB are more likely to break than the LSB and that symbols with the MSB set to 1 (\ie 0x8 to 0xF) are more likely to brea.
+Further analysis revealed the same bit and symbol error patterns as first discovered by Schmidt~\etal~\cite{Schmidt2013}, which state that within any transmitted symbol, the first three MSB are more likely to break than the LSB and that symbols 8-15 with the MSB set to 1 are more likely to break than 0-7.
 The probability of bit errors are plotted in Figure~\ref{fig:8mote_bit_errors}, with the first 12 bytes (96 bits) consisting of the message header with partially fixed content and the remaining 80 bytes are the constant payload, made up of two 32 byte patterns of 0x0000, 0x1111, ..., 0xFFFF, and one 16 byte pattern of 0x00, 0x11, ..., 0xFF.
 
 \begin{figure}[H]
-	\subfigure[XL symbol influence.] {
+	\subfigure[XL] {
     	\includegraphics[width=0.5\columnwidth]{figures/8mote_0-5_xor}
     	\label{fig:8mote_bit_errors_xl}
     }
-    \subfigure[L symbol influence] {
+    \subfigure[L] {
 	    \includegraphics[width=0.5\columnwidth]{figures/8mote_1-6_xor}
 	    \label{fig:8mote_bit_errors_l}
 	}
-	\subfigure[M influence.] {
+	\subfigure[M] {
 	    \includegraphics[width=0.5\columnwidth]{figures/8mote_2-6_xor}
 	    \label{fig:8mote_bit_errors_m}
 	}
-	\subfigure[S influence.] {
+	\subfigure[S] {
 	    \includegraphics[width=0.5\columnwidth]{figures/8mote_2-7_xor}
 	    \label{fig:8mote_bit_errors_s}
 	}
@@ -89,8 +90,13 @@ The probability of bit errors are plotted in Figure~\ref{fig:8mote_bit_errors}, 
 \end{figure}
 
 We were able to confirm the findings of Schmidt~\etal{} and extend them with a classification of the influence of symbols on bit error probability.
-The subfigures show four magnitudes of this phenomenon, ranging from and extreme to almost no difference between symbols, named XL, L, M and S.
+The subfigures show four magnitudes of this phenomenon, ranging from an extreme to almost no difference between symbols, named XL, L, M and S.
 The remaining links can be classified into these four categories as done in Table~\ref{tab:8mote_bit_error_link_classification}.
+
+We cannot see any correlation between the four pattern classifications and any other variable.
+XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respectively, however, the table is incomplete, since only 11 out of 16 links had enough bit errors to recognise and categorize the pattern.
+
+\todo{Investigate mutation pattern S vs. XL. Might be really interesting}
 
 \begin{table}[H]
 	\begin{tabularx}{\linewidth}{|c*{4}{|c}|}
@@ -98,16 +104,52 @@ The remaining links can be classified into these four categories as done in Tabl
 	\T \cellcolor{slightgray} Receiver	& \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 0} & \multicolumn{1}{X|}{\cellcolor{motered} \centering Sender 1} & \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 2}	& \multicolumn{1}{X|}{\cellcolor{moteblue} \centering Sender 3}\\
 	\hline
 
-	\cellcolor{moteblue}\T 4 & S  & n/a & n/a & n/a \B\\
+	\cellcolor{moteblue}\T 4 & S  & \cellcolor{slightgray} & \cellcolor{slightgray} & \cellcolor{slightgray}   \B\\
 	\hline
-	\cellcolor{motered}\T  5 & XL & XL  & L   & XL  \B\\
+	\cellcolor{motered}\T  5 & XL & XL & L & XL \B\\
 	\hline
-	\cellcolor{moteblue}\T 6 & XL & L   & M   & n/a \B\\
+	\cellcolor{moteblue}\T 6 & XL & L  & M & \cellcolor{slightgray}   \B\\
 	\hline
-	\cellcolor{motered}\T  7 & L  & n/a & S   & L   \B\\
+	\cellcolor{motered}\T  7 & L  & \cellcolor{slightgray} & S & L  \B\\
 	\hline 
 	\end{tabularx}
 
-	\caption{Classification of all links with enough bit errors (otherwise marked with n/a).}
+	\caption{Classification of all links with enough bit errors (otherwise grey).}
 	\label{tab:8mote_bit_error_link_classification}
 \end{table}
+
+
+\subsection{Effects of temperature}
+\label{subsec:effects_of_temperature}
+
+To investigate the influence of temperature on bit error patterns, we used the CM5000 motes in the temperature boxes as described in Section~\ref{sec:temperature_box}.
+To minimize signal disturbance we chose a large, mostly emtpy storage room which was not frequently visited and mounted the boxes on wooden posts, so that they were floating in free space, 
+We placed the boxes at a fixed distance to each other and controlled link quality sorely by rotating the antenna.
+
+
+
+A schematic description of the experiment setup with approximate mote distance and rotation is shown in Figure~\ref{fig:2mote_experiment_setup}.
+
+\todo{re-running experiments for clearer results @ 30, 50 70C}
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}
+		\newcommand\transmitter[4]{%
+		    \begin{scope}[xshift=#1cm,yshift=#2cm,rotate=#3]
+		    	\draw[fill=motered] (-0.5,-1.95) rectangle (0.5,0.15);
+		     	\draw[fill=black!10] (-0.167,-1.85) rectangle (0.167,-2.4);
+		     	\draw[snake=snake, white, segment amplitude=1.75, segment length=5, line width=1.25pt] (-0.4, 0) -- (0.4, 0);
+		     	\node at (0, -0.9) {#4};
+		     	\draw[snake=expanding waves, segment angle=40, segment length=7] (0,0.05) -- (0,1.1);
+		    \end{scope}
+		}
+
+		\draw[color=black!50] (0,0) -- (9,0) node[midway, below, black] {240cm};
+
+		\transmitter{0}{0}{-95}{0};
+		\transmitter{9}{0}{45}{1};
+	\end{tikzpicture}
+	\caption{Experiment setup with two rotated motes in temperature boxes.}
+	\label{fig:2mote_experiment_setup}
+\end{figure}
