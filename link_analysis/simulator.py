@@ -32,14 +32,12 @@ class Simulator:
             link.tx['data'][10 + 12 + ii] = payload[ii]
         new_link = Link(link.tx)
 
-        # notice we also corrupt the header!
-        corrupted_payload = self._corrupt_payload(link.tx['data'][10:], error_tables)
+        corrupted_payload = self._corrupt_payload(payload, error_tables)
 
         for rx in link.valid_rx:
             # print "origi:", "".join(map((lambda d: bin(d)[2:].zfill(8)), rx['xor'])), rx['bit_errors']
-            # we also overwrite the header!
             for ii in range(len(corrupted_payload)):
-                rx['data'][10 + ii] = corrupted_payload[ii]
+                rx['data'][10 + 12 + ii] = corrupted_payload[ii]
             new_link.add_rx(rx)
         for rx in link.timeout_rx:
             new_link.add_rx(rx)
@@ -60,7 +58,7 @@ class Simulator:
         # print "before:", cor_string, cor_string.count("1")
         corruption = self._add_corruption_for_burst_error(corruption, error_tables)
         corruption = self._add_corruption_for_burst_error(corruption, error_tables)
-        corruption = self._add_corruption_for_burst_error(corruption, error_tables)
+        # corruption = self._add_corruption_for_burst_error(corruption, error_tables)
         # cor_string = "".join(map((lambda d: bin(d)[2:].zfill(8)), corruption))
         # print "after: ", cor_string, cor_string.count("1")
 
@@ -80,7 +78,7 @@ class Simulator:
             if corruption_bits[position] == 0:
                 # remove single bit error
                 if position > 1 and corruption_bits[position-1] == 1 and corruption_bits[position-2] == 0:
-                    if random.random() < 0.3:
+                    if random.random() < 0.25:
                         corruption_bits[position - 1] = 0
 
                 position += 1
