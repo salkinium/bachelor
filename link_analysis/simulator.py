@@ -27,16 +27,19 @@ class Simulator:
         random.seed(os.urandom(1))
 
 
-    def _simulate_link(self, link, payload, symbol_errors):
+    def _simulate_link(self, link, payload, error_tables):
         for ii in range(len(payload)):
             link.tx['data'][10 + 12 + ii] = payload[ii]
         new_link = Link(link.tx)
 
-        corrupted_payload = self._corrupt_payload(payload, symbol_errors)
+        # notice we also corrupt the header!
+        corrupted_payload = self._corrupt_payload(link.tx['data'][10:], error_tables)
 
         for rx in link.valid_rx:
+            # print "origi:", "".join(map((lambda d: bin(d)[2:].zfill(8)), rx['xor'])), rx['bit_errors']
+            # we also overwrite the header!
             for ii in range(len(corrupted_payload)):
-                rx['data'][10 + 12 + ii] = corrupted_payload[ii]
+                rx['data'][10 + ii] = corrupted_payload[ii]
             new_link.add_rx(rx)
         for rx in link.timeout_rx:
             new_link.add_rx(rx)
@@ -45,36 +48,84 @@ class Simulator:
 
         return new_link
 
-    def _corrupt_payload(self, payload, symbol_errors):
-        corrupted_payload = []
+    def _corrupt_payload(self, payload, error_tables):
+        corruption = []
 
         for byte in payload:
-            upper_nibble = self._corrupt_symbol((byte & 0xf0) >> 4, symbol_errors)
-            lower_nibble = self._corrupt_symbol(byte & 0x0f, symbol_errors)
-            corrupted_payload.append((upper_nibble << 4 | lower_nibble))
+            upper_nibble = self._get_corruption_for_symbol((byte & 0xf0) >> 4, error_tables)
+            lower_nibble = self._get_corruption_for_symbol(byte & 0x0f, error_tables)
+            corruption.append((upper_nibble << 4 | lower_nibble))
 
-        # print map(lambda b1, b2: b1 ^ b2, payload, corrupted_payload)
-        # print symbol_errors
-        return corrupted_payload
+        # cor_string = "".join(map((lambda d: bin(d)[2:].zfill(8)), corruption))
+        # print "before:", cor_string, cor_string.count("1")
+        corruption = self._add_corruption_for_burst_error(corruption, error_tables)
+        corruption = self._add_corruption_for_burst_error(corruption, error_tables)
+        corruption = self._add_corruption_for_burst_error(corruption, error_tables)
+        # cor_string = "".join(map((lambda d: bin(d)[2:].zfill(8)), corruption))
+        # print "after: ", cor_string, cor_string.count("1")
 
-    def _corrupt_symbol(self, symbol, symbol_errors):
-        bit_errors = symbol_errors[symbol]
+        return map(lambda l, r: l ^ r, payload, corruption)
+
+    def _add_corruption_for_burst_error(self, corruption, error_tables):
+        bit_errors = sum(map(lambda b: bin(b).count("1"), corruption))
+
+        corruption_bits = []
+        for byte in corruption:
+            for ii in reversed(range(8)):
+                corruption_bits.append(1 if ((byte & (1 << ii)) > 0) else 0)
+
+        position = 0
+        burst_length = 0
+        while(position < len(corruption_bits)):
+            if corruption_bits[position] == 0:
+                # remove single bit error
+                if position > 1 and corruption_bits[position-1] == 1 and corruption_bits[position-2] == 0:
+                    if random.random() < 0.3:
+                        corruption_bits[position - 1] = 0
+
+                position += 1
+                continue
+
+            burst_length = self._random_burst_length(error_tables['burst'])
+            for ii in range(position, min(len(corruption_bits), position+burst_length)):
+                corruption_bits[ii] = 1
+            position += burst_length
+
+        for byte in range(len(corruption)):
+            cor_byte = 0
+            for bit in reversed(range(8)):
+                cor_byte |= (corruption_bits[byte*8 + (7 - bit)] << bit)
+            corruption[byte] = cor_byte
+
+        return corruption
+
+    def _random_burst_length(self, burst_error_table):
+        rands = random.random()
+        current_prop = 0
+
+        for length in reversed(range(1, len(burst_error_table))):
+            if rands < current_prop:
+                return length
+            current_prop += burst_error_table[length]
+
+        return 1
+
+    def _get_corruption_for_symbol(self, symbol, error_tables):
+        bit_errors = error_tables['symbol'][symbol]
         corruption = 0
 
         for ii in range(4):
             # ordered from LSB (0) to MSB (3)
-            if random.random() <= bit_errors[ii]:
-            # if bit_errors[ii] != 0:
+            if random.random() < bit_errors[ii]:
                 corruption |= (1 << ii)
 
-        return (symbol ^ corruption)
+        return corruption
 
-    def _calculate_symbol_errors(self, start, window):
+    def _calculate_error_tables(self, start, window):
         links = self.links[start:start+window]
 
-        symbol_errors = []
-        for _ in range(16):
-            symbol_errors.append([0.0] * 4)
+        symbol_errors = [ [0.0] * 4 for _ in range(16) ]
+        burst_errors = [0] * (16+1)
         messages = 0
 
         for link in links:
@@ -83,13 +134,35 @@ class Simulator:
                 for symbol in range(16):
                     for bit in range(4):
                         symbol_errors[symbol][bit] += rx['symbol_errors'][symbol][bit]
+                for burst_length in range(16+1):
+                    burst_errors[burst_length] += rx['burst_errors'][burst_length]
 
+        # average over window
         if messages >= 2:
             for symbol in range(16):
                 for bit in range(4):
                     symbol_errors[symbol][bit] /= messages
+            for burst_length in range(16 + 1):
+                burst_errors[burst_length] /= messages
 
-        return symbol_errors
+        symbols = [0.0] * 4
+        for symbol in symbol_errors:
+            for bit in range(4):
+                symbols[bit] += symbol[bit]
+        for bit in range(4):
+            symbols[bit] /= 16
+
+        for ii in range(16):
+            burst_errors[ii +1] *= (1+symbols[ii%4])
+
+        # relative bit errors
+        total_burst_errors = sum(burst_errors)
+        if total_burst_errors > 0:
+            total_lengths = 1.0 / sum(map(lambda b: 1 if b > 0 else 0, burst_errors))
+            for burst_length in range(1, 16 + 1):
+                burst_errors[burst_length] = float(burst_errors[burst_length]) / total_burst_errors
+
+        return {'symbol': symbol_errors, 'burst': burst_errors}
 
     def _write_link_to_log(self, link, properties):
         lines = [link.tx.format_for_log(properties)]
@@ -109,8 +182,8 @@ class Simulator:
 
         for link in range(number_of_links):
             try:
-                symbol_error = self._calculate_symbol_errors(link, self.window_size)
-                simulated_link = self._simulate_link(self.links[link], payload.data, symbol_error)
+                error_tables = self._calculate_error_tables(link, self.window_size)
+                simulated_link = self._simulate_link(self.links[link], payload.data, error_tables)
                 self._write_link_to_log(simulated_link, payload.properties)
             except:
                 print link+1,
