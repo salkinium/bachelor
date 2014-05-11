@@ -19,6 +19,7 @@ import pandas as pd
 import seaborn as sns
 sns.set_style("whitegrid")
 import json
+import math
 
 
 class Analyzer(object):
@@ -145,9 +146,9 @@ class Analyzer(object):
 
         if len(bits_array):
 
-            # if error_sum >= 2:
-            #     normed_bits_array = map(lambda b: float(b)/error_sum, bits_array)
-            normed_bits_array = bits_array
+            if error_sum >= 2:
+                normed_bits_array = map(lambda b: float(b)/error_sum, bits_array)
+            # normed_bits_array = bits_array
 
             fig, ax = plt.subplots(1)
             lines = ax.plot(range(len(normed_bits_array)), normed_bits_array)
@@ -157,7 +158,7 @@ class Analyzer(object):
             ax.set_axisbelow(True)
             ax.add_patch(Rectangle((0, 0), 12*8, 10000, color='0.90'))
             ax.set_xlim(xmin=0, xmax=max_length*8)
-            # ax.set_ylim(ymin=0, ymax=0.0025)
+            ax.set_ylim(ymin=0, ymax=0.0025)
             plt.xticks(range(12*8, max_length*8, 64), (range(0, max_length*8, 64)))
             ax.set_ylabel("Frequency of bit errors", fontsize=18)
             ax.set_xlabel("Bit position", fontsize=18)
@@ -221,6 +222,66 @@ class Analyzer(object):
 
             return fig, ax
 
+
+    def create_burst_error_plot(self):
+        burst_error = self._read_from_raw_file('burst_errors')
+        # burst_error = None
+        if burst_error == None:
+            if self.links == None:
+                print "Requiring array of property for key 'burst_errors'"
+                self.links = self.link_file.get_links_for_selector(self.selector)
+
+            all_burst_errors = []
+            for link in self.links:
+                for rx in link.rx:
+                    if 'burst_errors' in rx:
+                        if rx['bit_errors'] > 0:
+                            all_burst_errors.append(rx['burst_errors'])
+
+            burst_error = []
+
+            if len(all_burst_errors) > 0:
+                # bit errors per symbol
+                burst_error = [ [] for _ in range(16+1) ]
+
+                for ii in range(len(burst_error)):
+                    for error in all_burst_errors:
+                        burst_error[ii].append(error[ii])
+
+            self._write_to_raw_file('burst_errors', burst_error)
+
+        if len(burst_error) > 0:
+            one_bit_errors = float(sum(burst_error[1])) / len(burst_error[1])
+            relative_burst_errors = [ [0.0] * len(burst_error[length]) for length in range(len(burst_error)) ]
+            confidence_intervals = [[0] * (16+1), [0] * (16+1)]
+            mean_burst_error = [0] * (16+1)
+
+            for length in range(1, len(burst_error)):
+                # normalize over mean of 1 bit errors
+                for sample in range(len(burst_error[length])):
+                    relative_burst_errors[length][sample] = float(burst_error[length][sample]) / one_bit_errors
+
+                # confidence intervals
+                # n, min_max, mean, var, skew, kurt = stats.describe(relative_burst_errors[length])
+                # R = stats.norm.interval(0.95, loc=mean, scale=math.sqrt(var) / math.sqrt(len(burst_error[length])))
+                # confidence_intervals[0][length] = R[0]
+                # confidence_intervals[1][length] = R[1]
+                mean = np.mean(relative_burst_errors[length])
+                r = np.percentile(relative_burst_errors[length], 99)
+                confidence_intervals[0][length] = mean * (1+r)
+                confidence_intervals[1][length] = mean * (1-r)
+                mean_burst_error[length] = mean
+
+            fig, ax = plt.subplots(1)
+            ax.errorbar(range(len(burst_error)), mean_burst_error, yerr=confidence_intervals, fmt='', ecolor='k', capthick=2)
+
+            ax.set_yscale('log')
+            ax.set_xlim(xmin=1, xmax=16)
+            ax.set_ylim(ymin=1e-6, ymax=1e-0)
+            ax.set_ylabel('Relative occurances', fontsize=18)
+            ax.set_xlabel('Error burst length', fontsize=18)
+            return fig, ax
+
     def create_prr_plot(self):
         prr = self._read_from_raw_file('prr')
         if prr == None:
@@ -278,7 +339,7 @@ class Analyzer(object):
                         reference_time += delta_half + delta_half
 
                 prr['time'] = map(lambda dt: int(dt.strftime("%s")), prr['time'])
-                self._write_to_raw_file('prr', prr)
+            self._write_to_raw_file('prr', prr)
 
         if len(prr['time']) > 0:
 
@@ -299,11 +360,11 @@ class Analyzer(object):
             # ax.fill_between(prr['time'], prr['decoded_without_error'], where=prr['decoded_without_error'] >= zeros, color='0.8', interpolate=True)
             # ax.fill_between(prr['time'], prr['received_without_error'], where=prr['received_without_error'] >= zeros, color='1', interpolate=True)
 
-            ax.fill_between(prr['time'], y1=prr['decoded_without_error'], y2=ones, where=prr['decoded_without_error'] < ones, color='red', interpolate=True)
+            if sum(prr['decoded_without_error']) > 0:
+                ax.fill_between(prr['time'], y1=prr['decoded_without_error'], y2=ones, where=prr['decoded_without_error'] < ones, color='red', interpolate=True)
             ax.fill_between(prr['time'], y1=prr['received'], y2=ones, where=prr['received'] < ones, color='0.5', interpolate=True)
 
             # lines = ax.plot_date(prr['time'], prr['received'], markersize=1.5, c='b', linestyle='-', linewidth=1)
-            #
             # lines = ax.plot_date(prr['time'], prr['decoded_without_error'], markersize=1.5, c='r', linestyle='-', linewidth=1)
             lines = ax.plot_date(prr['time'], prr['received_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.5)
 
@@ -335,6 +396,8 @@ class Analyzer(object):
             plot = self.create_xor_plot()
         elif nkey in ['prr']:
             plot = self.create_prr_plot()
+        elif nkey in ['burst_errors']:
+            plot = self.create_burst_error_plot()
 
         return plot
 
@@ -357,7 +420,7 @@ class Analyzer(object):
             self.save_plot_for_key(key)
 
     def save_all_cached_plots(self):
-        keys = ['Hist RSSI', 'Hist LQI', 'Hist Bit Errors', 'Hist Byte Errors',
+        keys = ['Hist RSSI', 'Hist LQI', 'Hist Bit Errors', 'Hist Byte Errors', 'Burst Errors',
                 'Xor', 'PRR']
         for key in keys:
             self.save_plot_for_key(key)
