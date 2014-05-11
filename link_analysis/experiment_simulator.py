@@ -11,23 +11,58 @@
 import sys
 from link_file import LinkFile
 from simulator import Simulator
+import time
 
 if __name__ == "__main__":
 
-    payload_string = sys.argv[1]
-    link_file = LinkFile(sys.argv[2])
-    if len(sys.argv) > 3:
-        log_file = sys.argv[3]
-    else:
-        log_file = sys.argv[2] + ".simulation.log"
+    properties = {'payload': None,
+                  'input': None,
+                  'output': None,
+                  'window': 1}
+
+    parsed = {}
+    for arg in sys.argv[1:]:
+        try:
+            prop, value = arg.split("=")
+            parsed[prop] = value
+        except:
+            print "Invalid argument: '{}'".format(arg)
+            exit(-1)
+
+    properties.update(parsed)
+
+    if properties['payload'] == None:
+        print "You need to specify a new payload using 'payload='"
+        exit(-1)
+
+    if properties['input'] == None:
+        print "You need to specify an input log using 'input='"
+        exit(-1)
+
+    try:
+        properties['window'] = int(properties['window'])
+    except:
+        print "Invalid window argument: '{}'".format(properties['window'])
+        exit(-1)
+
+    if properties['output'] == None:
+        properties['output'] = "{}-simulation-{}-{}.log".format(properties['input'], properties['payload'][:15], properties['window']).replace(",", "_").replace("(", "_")
+        print "Output file not specified, will use '{}".format(properties['output'])
+
+    start = time.time()
+
+    link_file = LinkFile(properties['input'])
+
+    simulator_ab = Simulator(link_file.links_ab, properties['output'], properties['window'])
+    simulator_ba = Simulator(link_file.links_ba, properties['output'], properties['window'])
 
     print "\nsimulating A->B"
-    simulator_ab = Simulator(link_file.links_ab, log_file, 1)
-    simulator_ab.simulate(payload_string)
+    simulator_ab.simulate(properties['payload'])
 
     print "\nsimulating B->A"
-    simulator_ba = Simulator(link_file.links_ba, log_file, 1)
-    simulator_ba.simulate(payload_string)
+    simulator_ba.simulate(properties['payload'])
+
+    print "Done in {}s.".format(time.time() - start)
 
 
 
