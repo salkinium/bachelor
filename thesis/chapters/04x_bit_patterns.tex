@@ -1,4 +1,5 @@
-\section{Bit Error Patterns}
+\section{Bit error patterns}
+\label{sec:bit_error_patterns}
 
 We designed two experiments to investigate the results of Schmidt~\etal~\cite{Schmidt2013}.
 The first experiment was used to confirm their findings and also investigate the influence of hardware layout on bit error patterns, while the second experiment investigated the influence of temperature on these patterns.
@@ -93,11 +94,6 @@ We were able to confirm the findings of Schmidt~\etal{} and extend them with a c
 The subfigures show four magnitudes of this phenomenon, ranging from an extreme to almost no difference between symbols, named XL, L, M and S.
 The remaining links can be classified into these four categories as done in Table~\ref{tab:8mote_bit_error_link_classification}.
 
-We cannot see any correlation between the four pattern classifications and any other variable.
-XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respectively, however, the table is incomplete, since only 11 out of 16 links had enough bit errors to recognise and categorize the pattern.
-
-\todo{Investigate mutation pattern S vs. XL. Might be really interesting}
-
 \begin{table}[H]
 	\begin{tabularx}{\linewidth}{|c*{4}{|c}|}
 	\hline
@@ -118,6 +114,28 @@ XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respe
 	\label{tab:8mote_bit_error_link_classification}
 \end{table}
 
+Schmidt~\etal{} also looked into the burstiness of errors and showed in their research that burst errors are not independently distributed.
+The authors explained the drop from 4-bit bursts to 5-bit bursts with the added difficulty of corrupting a minimum of 7 bits to overcome the minimum Hamming distance of 12 between two symbols's chip sequences.
+They also hypothesized that a similar drop would occur between 8-bit and 9-bit bursts, but were unable to confirm this, due to their limited sample size.
+With our larger sample size we can even confirm their hypothesis, with the drop quite noticable in Figure~\ref{fig:8mote_burst_error}.
+
+\begin{figure}[H]
+	\subfigure[XL burst error distribution.] {
+    	\includegraphics[width=0.5\columnwidth]{figures/8mote_0-5_burst}
+    	\label{fig:8mote_xl_burst}
+    }
+    \subfigure[S burst error distribution.] {
+	    \includegraphics[width=0.5\columnwidth]{figures/8mote_2-7_burst}
+	    \label{fig:8mote_s_burst}
+	}
+	\caption{The burst error distributions of XL and S magnitudes show no significant difference.}
+	\label{fig:8mote_burst_error}
+\end{figure}
+
+We cannot see any correlation between the four pattern classifications and burst error distribution or any other variable.
+XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respectively, however, the table is incomplete, since only 11 out of 16 links had enough bit errors to recognise and categorize the pattern.
+
+\todo{Investigate mutation pattern S vs. XL. Might be really interesting}
 
 \subsection{Effects of temperature}
 \label{subsec:effects_of_temperature}
@@ -125,8 +143,6 @@ XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respe
 To investigate the influence of temperature on bit error patterns, we used the CM5000 motes in the temperature boxes as described in Section~\ref{sec:temperature_box}.
 To minimize signal disturbance we chose a large, mostly emtpy storage room which was not frequently visited and mounted the boxes on wooden posts, so that they were floating in free space, 
 We placed the boxes at a fixed distance to each other and controlled link quality sorely by rotating the antenna.
-
-
 
 A schematic description of the experiment setup with approximate mote distance and rotation is shown in Figure~\ref{fig:2mote_experiment_setup}.
 
