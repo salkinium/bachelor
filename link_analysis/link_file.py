@@ -26,7 +26,7 @@ class LinkFile:
 
     Selector = enum(AB=0, BA=1)
 
-    def __init__(self, filename):
+    def __init__(self, filename, coder_required=False):
         self.filename = filename
 
         self.id_a = "A"
@@ -35,9 +35,10 @@ class LinkFile:
         self._links_ab = None
         self._links_ba = None
         self._coder = None
+        self._coder_required = (coder_required == True)
 
     def _create_coder_from_message(self, msg):
-        if 'coder' in msg:
+        if self._coder_required and 'coder' in msg:
             coder_info = msg['coder'].split(",")
             if coder_info[0] == "rs":
                 n, k = int(coder_info[1]), int(coder_info[2])

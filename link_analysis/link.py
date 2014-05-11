@@ -26,16 +26,14 @@ class Link:
         self.valid_rx = []
         self.invalid_rx = []
         self.timeout_rx = []
-        self.coder = None
-        if 'coder' in self.tx:
-            self.coder = coder
+        self.coder = coder
+        if 'coder' in self.tx and self.coder != None:
             coder_info = self.tx['coder'].split(",")
             if coder_info[0] == "rs":
-                n, k = int(coder_info[1]), int(coder_info[2])
                 self.tx['coded_payload'] = self.tx['data'][10 + 12:10 + 12 + self.coder.k]
-                if self.coder == None or self.coder.n != n or self.coder.k != k:
-                    # really inefficient, don't do that
-                    self.coder = RSCoder(n, k)
+                n, k = int(coder_info[1]), int(coder_info[2])
+                # if self.coder.n != n or self.coder.k != k:
+                #     pass
 
 
     def add_rx(self, rx):
@@ -64,9 +62,7 @@ class Link:
                 xor_string = xor_string.replace("1" * burst, "0" * burst)
 
             # bit errors per symbol
-            symbol_errors = []
-            for _ in range(16):
-                symbol_errors.append([0.0] * 4)
+            symbol_errors = [ [0.0] * 4 for _ in range(16) ]
 
             for ii in range(len(xor)):
                 td = self.tx['data'][10+ii]
