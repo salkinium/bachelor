@@ -46,8 +46,8 @@ class MessageFormatter(object):
             result_list.append(MessageFormatter._format_item(values, 'timeout'))
             result_list.append(MessageFormatter._format_item(values, 'length'))
             if 'data' in values:
-                values['data'] = ["0x%x" % b for b in values['data']]
-                result_list.append("data={}".format(" ".join(values['data'])))
+                data = ["0x%x" % b for b in values['data']]
+                result_list.append("data={}".format(" ".join(data)))
             result_list.append(MessageFormatter._format_item(values, 'power'))
             result_list.append(MessageFormatter._format_item(values, 'rssi'))
             result_list.append(MessageFormatter._format_item(values, 'lqi'))

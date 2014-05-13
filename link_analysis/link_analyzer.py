@@ -173,7 +173,7 @@ class Analyzer(object):
 
         for link in self.links:
             for rx in link.rx:
-                if nkey in rx:
+                if nkey in rx and 'timestamp' in rx:
                     results['time'].append(rx['timestamp'])
                     results['values'].append(rx[nkey])
         return results
@@ -295,11 +295,14 @@ class Analyzer(object):
             # we are also interested in how good the coder was able to salvage the payload and make a PRR out of that
             # if no code was used, this will be empty
             time_decoded_bit_errors = self.get_time_plot_values_for_key('decoded_bit_errors')
+            # if we use a coder, we need to compare the bit errors in the coded area with the decoded area
+            time_coded_bit_errors = self.get_time_plot_values_for_key('coded_bit_errors')
 
             prr = {'time': [],
                    'sent': [1],
                    'received': [0],
                    'received_without_error': [0],
+                   'coded_without_error': [0],
                    'decoded_without_error': [0]}
 
             if len(time_messages['time']) > 0:
@@ -312,6 +315,7 @@ class Analyzer(object):
 
                 prr_index = 0
                 bit_error_index = 0
+                coded_error_index = 0
                 decoded_error_index = 0
                 delta_half = datetime.timedelta(seconds=7, milliseconds=500)
                 reference_time = prr['time'][0] + delta_half + delta_half
@@ -328,12 +332,17 @@ class Analyzer(object):
                                        time_decoded_bit_errors['time'][decoded_error_index] <= reference_time):
                             prr['decoded_without_error'][prr_index] += 1 if time_decoded_bit_errors['values'][decoded_error_index] == 0 else 0
                             decoded_error_index += 1
+                        while (coded_error_index < len(time_coded_bit_errors['time']) and
+                                       time_coded_bit_errors['time'][coded_error_index] <= reference_time):
+                            prr['coded_without_error'][prr_index] += 1 if time_coded_bit_errors['values'][coded_error_index] == 0 else 0
+                            coded_error_index += 1
                     else:
                         prr['time'].append(reference_time - delta_half)
                         prr['sent'].append(1)
                         prr['received'].append(0)
                         prr['received_without_error'].append(0)
                         prr['decoded_without_error'].append(0)
+                        prr['coded_without_error'].append(0)
 
                         prr_index += 1
                         reference_time += delta_half + delta_half
@@ -352,6 +361,7 @@ class Analyzer(object):
                     prr['received'][ii] = float(prr['received'][ii]) / all_sent
                     prr['received_without_error'][ii] = float(prr['received_without_error'][ii]) / all_sent
                     prr['decoded_without_error'][ii] = float(prr['decoded_without_error'][ii]) / all_sent
+                    prr['coded_without_error'][ii] = float(prr['coded_without_error'][ii]) / all_sent
 
             fig, ax = plt.subplots(1)
             zeros = np.zeros(len(prr['time']))
@@ -366,7 +376,10 @@ class Analyzer(object):
 
             # lines = ax.plot_date(prr['time'], prr['received'], markersize=1.5, c='b', linestyle='-', linewidth=1)
             # lines = ax.plot_date(prr['time'], prr['decoded_without_error'], markersize=1.5, c='r', linestyle='-', linewidth=1)
-            lines = ax.plot_date(prr['time'], prr['received_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.5)
+            if sum(prr['coded_without_error']) > 0:
+                lines = ax.plot_date(prr['time'], prr['coded_without_error'], markersize=0, c='b', linestyle='-', linewidth=0.5)
+            else:
+                lines = ax.plot_date(prr['time'], prr['received_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.5)
 
             ax.set_ylim(ymin=0, ymax=1)
             ax.set_ylabel('PRR')
