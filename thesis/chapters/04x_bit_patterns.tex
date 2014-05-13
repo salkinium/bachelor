@@ -117,7 +117,7 @@ The remaining links can be classified into these four categories as done in Tabl
 Schmidt~\etal{} also looked into the burstiness of errors and showed in their research that burst errors are not independently distributed.
 The authors explained the drop from 4-bit bursts to 5-bit bursts with the added difficulty of corrupting a minimum of 7 bits to overcome the minimum Hamming distance of 12 between two symbols's chip sequences.
 They also hypothesized that a similar drop would occur between 8-bit and 9-bit bursts, but were unable to confirm this, due to their limited sample size.
-With our larger sample size we can even confirm their hypothesis, with the drop quite noticable in Figure~\ref{fig:8mote_burst_error}.
+With our larger sample size we can confirm their hypothesis, with the drop quite noticable in Figure~\ref{fig:8mote_xl_burst}.
 
 \begin{figure}[H]
 	\subfigure[XL burst error distribution.] {
@@ -137,16 +137,19 @@ XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respe
 
 \todo{Investigate mutation pattern S vs. XL. Might be really interesting}
 
+
 \subsection{Effects of temperature}
 \label{subsec:effects_of_temperature}
 
 To investigate the influence of temperature on bit error patterns, we used the CM5000 motes in the temperature boxes as described in Section~\ref{sec:temperature_box}.
 To minimize signal disturbance we chose a large, mostly emtpy storage room which was not frequently visited and mounted the boxes on wooden posts, so that they were floating in free space, 
 We placed the boxes at a fixed distance to each other and controlled link quality sorely by rotating the antenna.
-
 A schematic description of the experiment setup with approximate mote distance and rotation is shown in Figure~\ref{fig:2mote_experiment_setup}.
 
+
+
 \todo{re-running experiments for clearer results @ 30, 50 70C}
+\todo{I see inverted patterns again, might have broken the mote...}
 
 \begin{figure}[H]
 	\centering
@@ -169,3 +172,77 @@ A schematic description of the experiment setup with approximate mote distance a
 	\caption{Experiment setup with two rotated motes in temperature boxes.}
 	\label{fig:2mote_experiment_setup}
 \end{figure}
+
+
+\subsection{Pattern anomalies}
+\label{subsec:pattern_anomalies}
+
+Even though vast majority of experiment evaluations confirmed these patterns, there were two runs with  drastically different outcome.
+We were very surprised to find a second, completely opposite bit error pattern as shown in Figure~\ref{fig:anomalie_bit_error}.
+Here the symbols 0-7 show a higher average bit error rate and a less pronounced 4-bit saw-tooth pattern than symbols 8-15.
+The pattern almost looks like an ``inverse'' of those described earlier.
+
+\begin{figure}[H]
+	\subfigure[First occurance.] {
+    	\includegraphics[width=0.5\columnwidth]{figures/anomaly_older}
+    	\label{fig:anomalie_earlier}
+    }
+    \subfigure[Second occurance.] {
+	    \includegraphics[width=0.5\columnwidth]{figures/anomaly_newer}
+	    \label{fig:anomalie_later}
+	}
+	\caption{``Inverted'' bit error pattern anomaly of constant data.}
+	\label{fig:anomalie_bit_error}
+\end{figure}
+
+The first time it occurred, we attributed this to influences of the environment and discarded it.
+Two months later, this pattern occured again with different hardware in a different setup in a different environment.
+Both times, the motes were exposed to high temperature (>$70\,^{\circ}\mathrm{C}$) over several hours, however, we were unable to confirm if this really triggered the pattern.
+Once a mote was ``infected'', this pattern remained, regardless of programming, link quality or message payload.
+
+We cannot envision a source of interference capable of fundamentally changing this bit error distribution and neither does a permanent change of the radio chip's hardware at high temperature seem possible.
+The CC2420 radio is rated to be operated at temperatures up to $85\,^{\circ}\mathrm{C}$ and to be stored at up to $150\,^{\circ}\mathrm{C}$, while our experiments where limited to at most $90\,^{\circ}\mathrm{C}$ for a few hours.
+
+Since we could not find any other reference to this pattern in literature and due to the rarity of this occurance in our experiments and the difficulty of its replicatability, we decided to ignore these patterns for the time being.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
