@@ -11,20 +11,25 @@
 import sys
 from link_analyzer import Analyzer
 from link_file import LinkFile
-
+import glob
 
 if __name__ == "__main__":
 
     for arg in sys.argv[1:]:
         file = arg.split(",")
         decode = True if (len(file) > 1) else False
-        print "Parsing file '{}' with decoder '{}'".format(file[0], decode)
 
-        link_file = LinkFile(file[0], decode)
+        found_files = glob.glob(file[0])
+        print "Found these files : \n{}".format("\n".join(found_files))
 
-        analyzer_ab, analyzer_ba = link_file.get_analyzers()
+        for file in found_files:
+            print "Parsing file '{}' with decoder '{}'".format(file, decode)
 
-        analyzer_ab.save_all_cached_plots()
-        analyzer_ba.save_all_cached_plots()
+            link_file = LinkFile(file, decode)
+
+            analyzer_ab, analyzer_ba = link_file.get_analyzers()
+
+            analyzer_ab.save_all_cached_plots()
+            analyzer_ba.save_all_cached_plots()
 
 

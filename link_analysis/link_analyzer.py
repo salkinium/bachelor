@@ -21,13 +21,10 @@ sns.set_style("whitegrid")
 import json
 import math
 
-
 class Analyzer(object):
 
-    def __init__(self, link_file, selector, basename=None):
-        # self.links = [] if not links else [link for link in links if link.is_valid]
+    def __init__(self, link_file, selector, basename):
         self.links = None
-        self.basename = basename if basename else os.path.dirname(__file__)
         self.link_file = link_file
         self.selector = selector
 
@@ -41,7 +38,7 @@ class Analyzer(object):
         self.logger.handlers = []
         self.logger.addHandler(ch)
 
-        self.raw_file_name = "{}_raw.txt".format(self.basename)
+        self.raw_file_name = "{}_{}_raw.txt".format(basename, "A-B" if self.selector == 0 else "B-A")
         self.raw_dict = {}
         if os.path.isfile(self.raw_file_name):
             with open(self.raw_file_name, 'r') as raw_file:
@@ -50,12 +47,22 @@ class Analyzer(object):
                 except:
                     print "Error: raw file corrupted!"
 
-        self.ranges = {'rssi': range(-100, -70),
-                       'lqi': range(20, 115),
+        ids = self._read_from_raw_file('ids')
+        if ids == None:
+            print "Requiring array of property for key 'ids'"
+            self.links = self.link_file.get_links_for_selector(self.selector)
+            ids = {'A': self.link_file.id_a, 'B': self.link_file.id_b}
+            self._write_to_raw_file('ids', ids)
+
+        id_string = "{}-{}".format(ids['A'] if self.selector == 0 else ids['B'], ids['B'] if self.selector == 0 else ids['A'])
+        self.basename = "{}_{}".format(basename, id_string)
+
+        self.ranges = {'rssi': range(-100, -80),
+                       'lqi': range(30, 110),
                        'power': range(0, 30),
-                       'bit_errors': range(0, 80),
+                       'bit_errors': range(0, 60),
                        'byte_errors': range(0, 40),
-                       'temperature': range(20, 100)}
+                       'temperature': range(20, 90)}
 
     def _write_to_raw_file(self, key, data):
         nkey = key.lower().replace(" ", "_")
@@ -148,7 +155,8 @@ class Analyzer(object):
 
             if error_sum >= 2:
                 normed_bits_array = map(lambda b: float(b)/error_sum, bits_array)
-            # normed_bits_array = bits_array
+            else:
+                normed_bits_array = bits_array
 
             fig, ax = plt.subplots(1)
             lines = ax.plot(range(len(normed_bits_array)), normed_bits_array)
@@ -164,7 +172,7 @@ class Analyzer(object):
             ax.set_xlabel("Bit position", fontsize=18)
             return fig, ax, {'errors': bits_array, 'sum': error_sum}
 
-    def get_time_plot_values_for_key(self, key):
+    def get_time_values_for_key(self, key):
         nkey = key.lower().replace(" ", "_")
         results = {'time': [], 'values': []}
         if self.links == None:
@@ -178,50 +186,80 @@ class Analyzer(object):
                     results['values'].append(rx[nkey])
         return results
 
-    def create_mean_time_plot(self, values, lower=None, upper=None):
-        if len(values['time']) > 0:
-            for ii in range(len(values['time'])):
-                mean = np.mean(values['values'][ii])
-                std = np.std(values['values'][ii], ddof=1)
-
-                values['mean'].append(mean)
-                values['std_l'].append(max(lower, (mean - std)) if lower != None else mean - std)
-                values['std_u'].append(min(upper, (mean - std)) if upper != None else mean + std)
-
-            fig, ax = plt.subplots(1)
-            lines = ax.plot_date(values['time'], values['std_u'], c='0.5', linestyle='-',
-                                 markersize=0, linewidth=1)
-            lines = ax.plot_date(values['time'], values['std_l'], c='0.5', linestyle='-',
-                                 markersize=0, linewidth=1)
-            lines = ax.plot_date(values['time'], values['mean'], c='k', linestyle='-',
-                                 markersize=0, linewidth=1.75)
-            fig.autofmt_xdate()
-            return fig, ax
-
-    def create_mean_time_plot_for_key(self, key):
+    def get_mean_time_values_for_key(self, key, lower=None, upper=None):
         nkey = key.lower().replace(" ", "_")
-        values = self.get_time_plot_values_for_key(nkey)
+        data = self._read_from_raw_file(nkey)
+        if data == None:
+            values = self.get_time_values_for_key(nkey)
 
-        delta_half = datetime.timedelta(minutes=1)
+            data = {'time': [], 'values': []}
+            if len(values['time']) > 0:
+                data['time'].append(values['time'][0])
+                data['values'].append([values['values'][0]])
+                data_index = 0
+                delta_half = datetime.timedelta(minutes=1)
+                reference_time = data['time'][0] + delta_half + delta_half
 
-        if len(values['time']) > 0:
-            accumulated_values = {'time': [values['time'][0]], 'values': [[values['values'][0]]], 'mean': [], 'std_l': [], 'std_u': []}
-            index = 0
-            for ii in range(len(values['time'])):
-                if values['time'][ii] <= accumulated_values['time'][index] + delta_half + delta_half:
-                    accumulated_values['values'][index].append(values['values'][ii])
-                else:
-                    accumulated_values['time'].append(values['time'][ii] + delta_half)
-                    accumulated_values['values'].append([values['values'][ii]])
-                    index += 1
+                for time_index in range(len(values['time'])):
+                    if values['time'][time_index] <= reference_time:
+                        data['values'][data_index].append(values['values'][time_index])
+                    else:
+                        data['time'].append(reference_time - delta_half)
+                        data['values'].append([values['values'][time_index]])
 
-            fig, ax = self.create_mean_time_plot(accumulated_values, 0 if 'errors' in nkey else None)
-            # lines = ax.plot_date(values['time'], values['values'], markersize=1, c='k')
+                        data_index += 1
+                        reference_time += delta_half + delta_half
+
+                data['time'] = map(lambda dt: int(dt.strftime("%s")), data['time'])
+            self._write_to_raw_file(nkey, dict(data))
+        else:
+            data = dict(data)
+
+        if len(data['time']) > 0:
+            data['time'] = map(lambda dt: datetime.datetime.fromtimestamp(dt), data['time'])
+            data.update({'mean': [], 'std_l': [], 'std_u': []})
+            for ii in range(len(data['time'])):
+                mean = np.mean(data['values'][ii])
+                std = np.std(data['values'][ii], ddof=1)
+
+                data['mean'].append(mean)
+                data['std_l'].append(max(lower, (mean - std)) if lower != None else mean - std)
+                data['std_u'].append(min(upper, (mean - std)) if upper != None else mean + std)
+
+        return data
+
+    def create_mean_time_plot_for_key(self, key, nax=None):
+        nkey = key.lower().replace(" ", "_")
+        data = self.get_mean_time_values_for_key(key, 0 if 'errors' in nkey else None)
+
+        if len(data['time']) > 0:
+
+            if nax == None:
+                fig, ax = plt.subplots(1)
+                x, y = fig.get_size_inches()
+                fig.set_size_inches(x * 0.625, y * 0.625)
+            else:
+                ax = nax
             ax.set_ylim(ymin=min(self.ranges[nkey]), ymax=max(self.ranges[nkey]))
-            ax.set_ylabel(key)
+            if 'temperature' in nkey:
+                key += " ($^\circ$C)"
+            ax.set_ylabel(key, fontsize=18)
 
-            return fig, ax
+            if 'temperature' not in nkey:
+                ax.plot_date(data['time'], data['std_u'], c='0.5', linestyle='-', markersize=0, linewidth=1)
+                std_line, = ax.plot_date(data['time'], data['std_l'], c='0.5', linestyle='-', markersize=0, linewidth=1)
+            mean, = ax.plot_date(data['time'], data['mean'], c='k', linestyle='-', markersize=0, linewidth=1.75)
 
+            if 'temperature' not in nkey:
+                ax.legend([mean, std_line],
+                          ['Mean', '1 std deviation'],
+                          loc= 2 if 'errors' in nkey else 3,
+                          prop={'size': 12})
+
+            if nax == None:
+                fig.autofmt_xdate()
+
+            return ax
 
     def create_burst_error_plot(self):
         burst_error = self._read_from_raw_file('burst_errors')
@@ -262,17 +300,19 @@ class Analyzer(object):
                     relative_burst_errors[length][sample] = float(burst_error[length][sample]) / one_bit_errors
 
                 # confidence intervals
-                # n, min_max, mean, var, skew, kurt = stats.describe(relative_burst_errors[length])
-                # R = stats.norm.interval(0.95, loc=mean, scale=math.sqrt(var) / math.sqrt(len(burst_error[length])))
-                # confidence_intervals[0][length] = R[0]
-                # confidence_intervals[1][length] = R[1]
-                mean = np.mean(relative_burst_errors[length])
-                r = np.percentile(relative_burst_errors[length], 99)
-                confidence_intervals[0][length] = mean * (1+r)
-                confidence_intervals[1][length] = mean * (1-r)
+                n, min_max, mean, var, skew, kurt = stats.describe(relative_burst_errors[length])
+                R = stats.norm.interval(0.95, loc=mean, scale=math.sqrt(var) / math.sqrt(len(burst_error[length])))
+                confidence_intervals[0][length] = R[0]
+                confidence_intervals[1][length] = R[1]
+                # mean = np.mean(relative_burst_errors[length])
+                # r = np.percentile(relative_burst_errors[length], 99)
+                # confidence_intervals[0][length] = mean * (1+r)
+                # confidence_intervals[1][length] = mean * (1-r)
                 mean_burst_error[length] = mean
 
             fig, ax = plt.subplots(1)
+            x, y = fig.get_size_inches()
+            fig.set_size_inches(x * 0.625, y * 0.625)
             ax.errorbar(range(len(burst_error)), mean_burst_error, yerr=confidence_intervals, fmt='', ecolor='k', capthick=2)
 
             ax.set_yscale('log')
@@ -282,21 +322,21 @@ class Analyzer(object):
             ax.set_xlabel('Error burst length', fontsize=18)
             return fig, ax
 
-    def create_prr_plot(self):
+    def create_prr_plot(self, nax=None):
         prr = self._read_from_raw_file('prr')
         if prr == None:
             # we need to know how many messages we sent, to be able to normalize all PRRs
-            time_messages = self.get_time_plot_values_for_key('timeout')
+            time_messages = self.get_time_values_for_key('timeout')
 
             # if the key 'bit_errors' is in the rx message, then there was no timeout, and the message is valid
             # this can therefore be used for two PRRs: general PRR and error-free PRR
-            time_bit_errors = self.get_time_plot_values_for_key('bit_errors')
+            time_bit_errors = self.get_time_values_for_key('bit_errors')
 
             # we are also interested in how good the coder was able to salvage the payload and make a PRR out of that
             # if no code was used, this will be empty
-            time_decoded_bit_errors = self.get_time_plot_values_for_key('decoded_bit_errors')
+            time_decoded_bit_errors = self.get_time_values_for_key('decoded_bit_errors')
             # if we use a coder, we need to compare the bit errors in the coded area with the decoded area
-            time_coded_bit_errors = self.get_time_plot_values_for_key('coded_bit_errors')
+            time_coded_bit_errors = self.get_time_values_for_key('coded_bit_errors')
 
             prr = {'time': [],
                    'sent': [1],
@@ -337,7 +377,7 @@ class Analyzer(object):
                             prr['coded_without_error'][prr_index] += 1 if time_coded_bit_errors['values'][coded_error_index] == 0 else 0
                             coded_error_index += 1
                     else:
-                        prr['time'].append(reference_time - delta_half)
+                        prr['time'].append(reference_time)
                         prr['sent'].append(1)
                         prr['received'].append(0)
                         prr['received_without_error'].append(0)
@@ -348,10 +388,11 @@ class Analyzer(object):
                         reference_time += delta_half + delta_half
 
                 prr['time'] = map(lambda dt: int(dt.strftime("%s")), prr['time'])
-            self._write_to_raw_file('prr', prr)
+            self._write_to_raw_file('prr', dict(prr))
+        else:
+            prr = dict(prr)
 
         if len(prr['time']) > 0:
-
             prr['time'] = map(lambda dt: datetime.datetime.fromtimestamp(dt), prr['time'])
 
             # normalize for all sent messages
@@ -363,28 +404,44 @@ class Analyzer(object):
                     prr['decoded_without_error'][ii] = float(prr['decoded_without_error'][ii]) / all_sent
                     prr['coded_without_error'][ii] = float(prr['coded_without_error'][ii]) / all_sent
 
-            fig, ax = plt.subplots(1)
+            if nax == None:
+                fig, ax = plt.subplots(1)
+                x, y = fig.get_size_inches()
+                fig.set_size_inches(x * 0.625, y * 0.625)
+            else:
+                ax = nax
             zeros = np.zeros(len(prr['time']))
             ones = np.ones(len(prr['time']))
+            legend = {'patches': [], 'labels': []}
 
-            # ax.fill_between(prr['time'], prr['decoded_without_error'], where=prr['decoded_without_error'] >= zeros, color='0.8', interpolate=True)
-            # ax.fill_between(prr['time'], prr['received_without_error'], where=prr['received_without_error'] >= zeros, color='1', interpolate=True)
+            if sum(prr['decoded_without_error']) > 0 and False:
+                ax.fill_between(prr['time'], y1=prr['decoded_without_error'], y2=ones, where=prr['decoded_without_error'] < ones, color='r', interpolate=True)
+                legend['patches'].append(Rectangle((0, 0), 1, 1, fc="r"))
+                legend['labels'].append("Decoded with error")
 
-            if sum(prr['decoded_without_error']) > 0:
-                ax.fill_between(prr['time'], y1=prr['decoded_without_error'], y2=ones, where=prr['decoded_without_error'] < ones, color='red', interpolate=True)
-            ax.fill_between(prr['time'], y1=prr['received'], y2=ones, where=prr['received'] < ones, color='0.5', interpolate=True)
+            ax.fill_between(prr['time'], y1=prr['received'], y2=ones, where=prr['received'] < ones, color='0.65', interpolate=True)
+            legend['patches'].append(Rectangle((0, 0), 1, 1, fc="0.65"))
+            legend['labels'].append("Reception timeout")
 
-            # lines = ax.plot_date(prr['time'], prr['received'], markersize=1.5, c='b', linestyle='-', linewidth=1)
-            # lines = ax.plot_date(prr['time'], prr['decoded_without_error'], markersize=1.5, c='r', linestyle='-', linewidth=1)
-            if sum(prr['coded_without_error']) > 0:
-                lines = ax.plot_date(prr['time'], prr['coded_without_error'], markersize=0, c='b', linestyle='-', linewidth=0.5)
-            else:
-                lines = ax.plot_date(prr['time'], prr['received_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.5)
+            # if sum(prr['coded_without_error']) > 0:
+            #     rx_wo_error, = ax.plot_date(prr['time'], prr['coded_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.8)
+            # else:
+            rx_wo_error, = ax.plot_date(prr['time'], prr['received_without_error'], markersize=0, c='k', linestyle='-', linewidth=0.8)
+            legend['patches'].append(rx_wo_error)
+            legend['labels'].append("Received without Error")
 
             ax.set_ylim(ymin=0, ymax=1)
-            ax.set_ylabel('PRR')
-            fig.autofmt_xdate()
-            return fig, ax
+            ax.set_ylabel('PRR', fontsize=18)
+
+            ax.legend(legend['patches'],
+                      legend['labels'],
+                      loc=3,
+                      prop={'size': 12})
+
+            if nax == None:
+                fig.autofmt_xdate()
+
+            return ax
 
     def create_time_plot(self, key='lqi'):
         nkey = key.lower().replace(" ", "_")
@@ -397,6 +454,26 @@ class Analyzer(object):
             ax.set_ylabel(nkey)
             fig.autofmt_xdate()
             return fig, ax
+
+    def create_time_plots_for_multiple_keys(self, keys):
+        plots = len(keys)
+        fig, axarr = plt.subplots(plots, sharex=True)
+
+        fig.set_size_inches(8 * 0.625, 0.625 * plots * 5.5)
+        for ii in range(plots):
+            key = keys[ii].lower().replace(" ", "_")
+            if 'prr' in key:
+                self.create_prr_plot(axarr[ii])
+            else:
+                self.create_mean_time_plot_for_key(keys[ii], axarr[ii])
+
+        fig.autofmt_xdate()
+
+        self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, "-".join(keys)))
+        plt.savefig("{}_{}.pdf".format(self.basename, "-".join(keys)), bbox_inches='tight', pad_inches=0.1)
+        plt.close()
+
+        return axarr
 
     def create_plot_for_key(self, key):
         nkey = key.lower().replace(" ", "_")
@@ -417,11 +494,9 @@ class Analyzer(object):
     def save_plot_for_key(self, key):
         plot = self.create_plot_for_key(key)
         if plot != None:
-            fig = plot[0]
-            ax = plot[1]
             self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, key))
-            plt.savefig("{}_{}.pdf".format(self.basename, key))
-            plt.savefig("{}_{}.png".format(self.basename, key))
+            plt.savefig("{}_{}.pdf".format(self.basename, key), bbox_inches='tight', pad_inches=0.1)
+            # plt.savefig("{}_{}.png".format(self.basename, key))
             plt.close()
 
     def save_all_plots(self):
@@ -433,13 +508,16 @@ class Analyzer(object):
             self.save_plot_for_key(key)
 
     def save_all_cached_plots(self):
-        keys = ['Hist RSSI', 'Hist LQI', 'Hist Bit Errors', 'Hist Byte Errors', 'Burst Errors',
-                'Xor', 'PRR']
+        keys = ['LQI', 'RSSI', 'Bit Errors', 'Byte Errors', 'Burst Errors', 'Temperature',
+                'Hist RSSI', 'Hist LQI', 'Hist Bit Errors', 'Hist Byte Errors',
+                'Xor',
+                # 'PRR'
+                ]
         for key in keys:
             self.save_plot_for_key(key)
-
+        self.create_time_plots_for_multiple_keys(['PRR', 'Bit Errors', 'LQI', 'RSSI', 'Temperature'])
 
     def save_plot_to_file(self, plot, filename):
         if len(self.links) > 0 and plot:
             self.logger.debug("Saving Plot to file: '{}'".format(filename))
-            plot.savefig(os.path.join(os.path.dirname(__file__), '..', 'plots', filename))
+            plot.savefig(os.path.join(os.path.dirname(__file__), '..', 'plots', filename), bbox_inches='tight')

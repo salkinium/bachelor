@@ -127,6 +127,12 @@ class LinkFile:
         elif selector == LinkFile.Selector.BA:
             return self.links_ba
 
+    def get_string_for_selector(self, selector):
+        if selector == LinkFile.Selector.AB:
+            return self.string_ab
+        elif selector == LinkFile.Selector.BA:
+            return self.string_ba
+
     @property
     def string_ab(self):
         return "{}-{}".format(self.id_a, self.id_b)
@@ -136,10 +142,10 @@ class LinkFile:
         return "{}-{}".format(self.id_b, self.id_a)
 
     def get_analyzer_ab(self):
-        return Analyzer(self, LinkFile.Selector.AB, "{}_{}".format(self.filename, self.string_ab))
+        return Analyzer(self, LinkFile.Selector.AB, self.filename)
 
     def get_analyzer_ba(self):
-        return Analyzer(self, LinkFile.Selector.BA, "{}_{}".format(self.filename, self.string_ba))
+        return Analyzer(self, LinkFile.Selector.BA, self.filename)
 
     def get_analyzers(self):
         return self.get_analyzer_ab(), self.get_analyzer_ba()
