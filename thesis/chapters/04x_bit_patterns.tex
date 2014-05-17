@@ -2,7 +2,7 @@
 \label{sec:bit_error_patterns}
 
 We designed two experiments to investigate the results of Schmidt~\etal~\cite{Schmidt2013}.
-The first experiment was used to confirm their findings and also investigate the influence of hardware layout on bit error patterns, while the second experiment investigated the influence of temperature on these patterns.
+The first experiment was used to confirm their findings and also investigate the influence of hardware layout on \ac{BER} patterns, while the second experiment investigated the influence of temperature on these patterns.
 
 \subsection{Effects of board layout}
 \label{subsec:effects_of_board_layout}
@@ -12,10 +12,10 @@ Notable differences include the 3V voltage regulator and the layout of the radio
 
 In the experiment a pair of CM5000 and original motes transmitted to two CM5000 and two original motes.
 This redundant placement shown in Figure~\ref{fig:8mote_experiment_setup} was chosen so that the same transmission was received by both types.
-Over the course of six days the four transmitters sent 563.500 messages each, totalling 2.254.000 transmitted messages at power setting 2 (<-25dBm). Of those transmitted messages a total of 5.280.369 messages were received, 2.497.744 of which had at least one bit error.
-The experiment was located in a large climate-controlled server room in the basement, therefore the temperature remained within $20-25\,^{\circ}\mathrm{C}$ with no other changes in the environment.
+Over the course of six days the four transmitters sent 563,500 messages each, totaling 2,254,000 transmitted messages at power setting 2 (-25dBm). Of those transmitted messages a total of 5,280,369 messages were received, 2,497,744 of which had at least one bit error.
+The experiment was located in the large climate-controlled server room in the basement, therefore the temperature remained within $20-25\,^{\circ}\mathrm{C}$ with no other changes in the environment.
 
-\begin{figure}[H]
+\begin{figure}[t]
 	\centering
 	\begin{tikzpicture}
 		\newcommand\receiver[5]{%
@@ -59,17 +59,17 @@ The experiment was located in a large climate-controlled server room in the base
 \end{figure}
 
 Note that the CM5000 motes required to be physically closer to the receivers at the same power setting to have similar link quality as the original motes.
-This might be hinting at a difference in range between the two hardware layouts, however, our experiment was not setup to systematically investigate range.
+This might be hinting at a difference in range between the two hardware layouts, however, our experiment was not set up to systematically investigate range.
 
 In the initial evaluation we noted some significant differences in the quality of some links, were the co-located transmitters are sending to the same receiver.
-For example, the link 3-5 is of very good quality with over 99\% PRR, however link 2-5 shows quite the opposite with less than 1\% PRR, even though both transmitters a located at the same distance and angle from the receiver.
-This confirms the findings of Baccour~\etal~\cite{Baccour2012}, specifically that link quality is anisotropic, \ie the communication range exhibits a nonspherical pattern.
+For example, the link 3-5 is of very good quality with over 99\% \ac{PRR}, however link 2-5 shows quite the opposite with less than 1\% \ac{PRR}, even though both transmitters a located at the same distance and angle from the receiver.
+This confirms the findings of Baccour~\etal~\cite{Baccour2012}, specifically that link quality is anisotropic, \ie the communication range exhibits a non-spherical pattern.
 More exhibitions of this behavior can be found in the complete table of link qualifiers in the Appendix as Table~\ref{tab:8mote_link_qualities}.
 
 Further analysis revealed the same bit and symbol error patterns as first discovered by Schmidt~\etal~\cite{Schmidt2013}, which state that within any transmitted symbol, the first three MSB are more likely to break than the LSB and that symbols 8-15 with the MSB set to 1 are more likely to break than 0-7.
-The probability of bit errors are plotted in Figure~\ref{fig:8mote_bit_errors}, with the first 12 bytes (96 bits) consisting of the message header with partially fixed content and the remaining 80 bytes are the constant payload, made up of two 32 byte patterns of 0x0000, 0x1111, ..., 0xFFFF, and one 16 byte pattern of 0x00, 0x11, ..., 0xFF.
+The normalized occurance of bit errors are plotted in Figure~\ref{fig:8mote_bit_errors}, with the first 12 bytes (96 bits) consisting of the message header with partially fixed content and the remaining 80 bytes are the constant payload, made up of two 32 byte patterns of 0x0000, 0x1111, ..., 0xFFFF, and one 16 byte pattern of 0x00, 0x11, ..., 0xFF.
 
-\begin{figure}[H]
+\begin{figure}[t]
 	\subfigure[XL] {
     	\includegraphics[width=0.5\columnwidth]{figures/8mote_0-5_xor}
     	\label{fig:8mote_bit_errors_xl}
@@ -86,13 +86,14 @@ The probability of bit errors are plotted in Figure~\ref{fig:8mote_bit_errors}, 
 	    \includegraphics[width=0.5\columnwidth]{figures/8mote_2-7_xor}
 	    \label{fig:8mote_bit_errors_s}
 	}
-	\caption{Four magnitudes of symbol content influence on bit error pattern.}
+	\caption{Four magnitudes of symbol content influence on Bit Error Rate.}
 	\label{fig:8mote_bit_errors}
 \end{figure}
 
-We were able to confirm the findings of Schmidt~\etal{} and extend them with a classification of the influence of symbols on bit error probability.
+We were able to confirm the findings of Schmidt~\etal{} and extend them with a classification of the influence of symbols on \ac{BER}.
 The subfigures show four magnitudes of this phenomenon, ranging from an extreme to almost no difference between symbols, named XL, L, M and S.
 The remaining links can be classified into these four categories as done in Table~\ref{tab:8mote_bit_error_link_classification}.
+XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respectively, however, the table is incomplete, since only 11 out of 16 links had enough bit errors to recognize and categorize the pattern.
 
 \begin{table}[H]
 	\begin{tabularx}{\linewidth}{|c*{4}{|c}|}
@@ -110,16 +111,16 @@ The remaining links can be classified into these four categories as done in Tabl
 	\hline 
 	\end{tabularx}
 
-	\caption{Classification of all links with enough bit errors (otherwise grey).}
+	\caption{Classification of all links with enough absolute bit errors (otherwise grey).}
 	\label{tab:8mote_bit_error_link_classification}
 \end{table}
 
 Schmidt~\etal{} also looked into the burstiness of errors and showed in their research that burst errors are not independently distributed.
-The authors explained the drop from 4-bit bursts to 5-bit bursts with the added difficulty of corrupting a minimum of 7 bits to overcome the minimum Hamming distance of 12 between two symbols's chip sequences.
+The authors explained the drop from 4-bit bursts to 5-bit bursts with the added difficulty of corrupting a minimum of 7 bits to overcome the minimum Hamming distance of 12 between two symbol's chip sequences.
 They also hypothesized that a similar drop would occur between 8-bit and 9-bit bursts, but were unable to confirm this, due to their limited sample size.
-With our larger sample size we can confirm their hypothesis, with the drop quite noticable in Figure~\ref{fig:8mote_xl_burst}.
+With our larger sample size we can confirm their hypothesis, with the drop quite noticeable in Figure~\ref{fig:8mote_xl_burst}.
 
-\begin{figure}[H]
+\begin{figure}[ht]
 	\subfigure[XL burst error distribution.] {
     	\includegraphics[width=0.5\columnwidth]{figures/8mote_0-5_burst}
     	\label{fig:8mote_xl_burst}
@@ -133,25 +134,16 @@ With our larger sample size we can confirm their hypothesis, with the drop quite
 \end{figure}
 
 We cannot see any correlation between the four pattern classifications and burst error distribution or any other variable.
-XL and L patterns seems to be more common than M and S, with 8 vs. 3 links respectively, however, the table is incomplete, since only 11 out of 16 links had enough bit errors to recognise and categorize the pattern.
-
-\todo{Investigate mutation pattern S vs. XL. Might be really interesting}
-
 
 \subsection{Effects of temperature}
 \label{subsec:effects_of_temperature}
 
-To investigate the influence of temperature on bit error patterns, we used the CM5000 motes in the temperature boxes as described in Section~\ref{sec:temperature_box}.
-To minimize signal disturbance we chose a large, mostly emtpy storage room which was not frequently visited and mounted the boxes on wooden posts, so that they were floating in free space, 
+To investigate the influence of temperature on \ac{BER} patterns, we used the CM5000 motes in the temperature boxes as described in Section~\ref{sec:temperature_box}.
+To minimize signal disturbance we mounted the boxes in the storage room on wooden posts, so that they were floating in free space.
 We placed the boxes at a fixed distance to each other and controlled link quality sorely by rotating the antenna.
 A schematic description of the experiment setup with approximate mote distance and rotation is shown in Figure~\ref{fig:2mote_experiment_setup}.
 
-
-
-\todo{re-running experiments for clearer results @ 30, 50 70C}
-\todo{I see inverted patterns again, might have broken the mote...}
-
-\begin{figure}[H]
+\begin{figure}[hb]
 	\centering
 	\begin{tikzpicture}
 		\newcommand\transmitter[4]{%
@@ -164,25 +156,42 @@ A schematic description of the experiment setup with approximate mote distance a
 		    \end{scope}
 		}
 
-		\draw[color=black!50] (0,0) -- (9,0) node[midway, below, black] {240cm};
+		\draw[color=black!50] (0,0) -- (9,0) node[midway, below, black] {280cm};
 
 		\transmitter{0}{0}{-95}{0};
-		\transmitter{9}{0}{45}{1};
+		\transmitter{9}{0}{60}{1};
 	\end{tikzpicture}
-	\caption{Experiment setup with two rotated motes in temperature boxes.}
+	\caption{Experiment setup of the two motes. Temperature boxes are not shown for simplicity.}
 	\label{fig:2mote_experiment_setup}
+\end{figure}
+
+We ran three experiments with the same constant payload as described in the Subsection~\ref{subsec:effects_of_board_layout} but with power setting 3 (-25dBm) at $30\,^{\circ}\mathrm{C}$, $50\,^{\circ}\mathrm{C}$ and $70\,^{\circ}\mathrm{C}$.
+Due to the decrease of link quality at higher temperatures, discussed in detail in Section~\ref{sec:packet_reception_rate}, we had to adjust mote rotation to regulate \ac{BER} at these temperatures, therefore small differences in absolute bit errors are present.
+However, Figure~\ref{fig:temperature_bit_errors} shows no significant difference between \ac{BER} patterns at all three temperatures.
+
+\begin{figure}[hb]
+	\subfigure[\acs{BER} pattern at $50\,^{\circ}\mathrm{C}$.] {
+    	\includegraphics[width=0.5\columnwidth]{figures/temperature_1_5}
+    	\label{fig:temperature_bit_errors_30}
+    }
+    \subfigure[\acs{BER} pattern at $70\,^{\circ}\mathrm{C}$.] {
+	    \includegraphics[width=0.5\columnwidth]{figures/temperature_0_6}
+	    \label{fig:temperature_bit_errors_70}
+	}
+	\caption{\acl{BER} patterns show no difference between $30\,^{\circ}\mathrm{C}$, $50\,^{\circ}\mathrm{C}$ and $70\,^{\circ}\mathrm{C}$. The pattern at $30\,^{\circ}\mathrm{C}$ is omitted, since it is redundant.}
+	\label{fig:temperature_bit_errors}
 \end{figure}
 
 
 \subsection{Pattern anomalies}
 \label{subsec:pattern_anomalies}
 
-Even though vast majority of experiment evaluations confirmed these patterns, there were two runs with  drastically different outcome.
-We were very surprised to find a second, completely opposite bit error pattern as shown in Figure~\ref{fig:anomalie_bit_error}.
-Here the symbols 0-7 show a higher average bit error rate and a less pronounced 4-bit saw-tooth pattern than symbols 8-15.
+Even though the vast majority of experiment evaluations confirmed these patterns, there were two runs with  drastically different outcome.
+We were very surprised to find a second, completely opposite \ac{BER} pattern as shown in Figure~\ref{fig:anomalie_bit_error}.
+Here the symbols 0-7 show a higher average \ac{BER} and a less pronounced 4-bit saw-tooth pattern than symbols 8-15.
 The pattern almost looks like an ``inverse'' of those described earlier.
 
-\begin{figure}[H]
+\begin{figure}[t]
 	\subfigure[First occurance.] {
     	\includegraphics[width=0.5\columnwidth]{figures/anomaly_older}
     	\label{fig:anomalie_earlier}
@@ -191,21 +200,21 @@ The pattern almost looks like an ``inverse'' of those described earlier.
 	    \includegraphics[width=0.5\columnwidth]{figures/anomaly_newer}
 	    \label{fig:anomalie_later}
 	}
-	\caption{``Inverted'' bit error pattern anomaly of constant data.}
+	\caption{``Inverted'' \acs{BER} pattern anomaly of constant data.}
 	\label{fig:anomalie_bit_error}
 \end{figure}
 
 The first time it occurred, we attributed this to influences of the environment and discarded it.
-Two months later, this pattern occured again with different hardware in a different setup in a different environment.
-Both times, the motes were exposed to high temperature (>$70\,^{\circ}\mathrm{C}$) over several hours, however, we were unable to confirm if this really triggered the pattern.
-Once a mote was ``infected'', this pattern remained, regardless of programming, link quality or message payload.
+Two months later, this pattern occurred again with different hardware in a different setup in a different environment.
+Both times, the motes were exposed to high temperature (>$70\,^{\circ}\mathrm{C}$) over several hours, however, we were unable to confirm if this indeed triggered the pattern.
+This pattern remained for days, regardless of temperature, link quality or message payload.
 
-We cannot envision a source of interference capable of fundamentally changing this bit error distribution and neither does a permanent change of the radio chip's hardware at high temperature seem possible.
+We cannot envision a source of interference capable of fundamentally changing this \ac{BER} distribution and neither does a permanent change of the radio chip's hardware at high temperature seem possible.
 The CC2420 radio is rated to be operated at temperatures up to $85\,^{\circ}\mathrm{C}$ and to be stored at up to $150\,^{\circ}\mathrm{C}$, while our experiments where limited to at most $90\,^{\circ}\mathrm{C}$ for a few hours.
 
-Since we could not find any other reference to this pattern in literature and due to the rarity of this occurance in our experiments and the difficulty of its replicatability, we decided to ignore these patterns for the time being.
+Since we could not find any other reference to this pattern in literature and due to the rarity of this occurrence in our experiments and the difficulty of its repeatability, we decided to focus on investigating the ``normal'' patterns.
 
-
+\todo{Investigate mutation pattern of original vs anomaly. Might be really interesting}
 
 
 

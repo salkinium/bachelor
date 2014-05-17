@@ -5,7 +5,7 @@ Since all motes are connected to one computer, packet loss due to colliding tran
 
 The software hold virtual representations of the mote, temperature controller and link, and logs experiment results to disk.
 A simple scripting language allows the definition of commands that are interpreted by the runtime and executed serially so that experiments can be described in independent and compact form.
-A short exerpt of an experiment script is shown in Figure~\ref{fig:script_exampe}.
+A short excerpt of an experiment script is shown in Figure~\ref{fig:script_exampe}.
 Multiple scripts can be added, so that experiments can run unsupervised around the clock.
 
 
@@ -24,8 +24,8 @@ set temperature:	box=0	temperature=40
 # but start sending immediately
 send message:	from=0,1	power=3	data=rs(80, 70, random)	timeout=0.15	period=0	repeat=10000	bursts=2
 \end{lstlisting}
-\caption{A script exerpt showing sending RS(80, 70) encoded random payload}
+\caption{A script excerpt showing sending RS(80, 70) encoded random payload}
 \label{lst:script_example}
 \end{listing}
 
-
+\todo{script is not helpful for understanding}
