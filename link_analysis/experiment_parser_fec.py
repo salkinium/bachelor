@@ -16,7 +16,8 @@ if __name__ == "__main__":
 
     plotter = FEC_Plotter(sys.argv[2:], "../../hauser_data/simulation/fec_scheme_{}".format(sys.argv[1]))
 
-    plotter.save_throughput_plot()
+    # plotter.save_throughput_plot()
+    plotter.save_prr_and_throughput_plots()
 
 
 

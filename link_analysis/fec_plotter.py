@@ -54,8 +54,12 @@ class FEC_Plotter(object):
                 values['file'] = file
 
                 match = re.search("-rs_(?P<n>[0-9]{2})_(?P<k>[0-9]{2})_random-2", file)
-                values['n']= int(match.group('n'))
-                values['k'] = int(match.group('k'))
+                if (match):
+                    values['n']= int(match.group('n'))
+                    values['k'] = int(match.group('k'))
+                else:
+                    values['n'] = 80
+                    values['k'] = 70
                 self.raw_dicts.append(values)
                 # except:
                 #     self.logger.error("Raw file corrupted!")
@@ -78,11 +82,12 @@ class FEC_Plotter(object):
 
         return data
 
-    def create_prr_plot(self, nax=None):
-        for values in self.raw_dicts:
-            if values['k'] == 70:
-                prr = dict(values['prr'])
-                break
+    def create_prr_plot(self, nax=None, prr=None, name="PRR"):
+        if prr == None:
+            for values in self.raw_dicts:
+                if values['k'] == 70:
+                    prr = dict(values['prr'])
+                    break
 
         if len(prr['time']) > 0:
             prr['time'] = map(lambda dt: datetime.datetime.fromtimestamp(dt), prr['time'])
@@ -127,7 +132,7 @@ class FEC_Plotter(object):
             legend['labels'].append("Received without Error")
 
             ax.set_ylim(ymin=0, ymax=1)
-            ax.set_ylabel('PRR', fontsize=18)
+            ax.set_ylabel(name, fontsize=18)
 
             ax.legend(legend['patches'],
                       legend['labels'],
@@ -167,42 +172,26 @@ class FEC_Plotter(object):
             return ax
 
 
-
-    def create_multiple_plots(self):
-        fig, axarr = plt.subplots(3, sharex=True)
-        fig.set_size_inches(8 * 0.625, 0.625 * 3 * 5.5)
-
-        self.create_throughput_plot(axarr[0])
-        # self.create_prr_plot(axarr[1])
-        self.create_mean_time_plot_for_key('Byte Errors', axarr[1])
-        # self.create_mean_time_plot_for_key('LQI', axarr[3])
-        self.create_mean_time_plot_for_key('Temperature', axarr[2])
-
-        fig.autofmt_xdate()
-
-        # self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, "-".join(keys)))
-        # plt.savefig("{}_{}.pdf".format(self.basename, "-".join(keys)), bbox_inches='tight', pad_inches=0.1)
-        # plt.close()
-
-        return axarr
-
-    def create_throughput_plot(self, nax=None):
+    def create_throughput_plot(self, nax=None, labels=None):
 
         if nax == None:
             fig, ax = plt.subplots(1)
         else:
             ax = nax
         colors = "bgrcmyk"
+        # colors = "rgb"
         color_index = 0
 
-        for file in self.raw_dicts:
+        legend = {'patches': [], 'labels': []}
+
+        for i, file in enumerate(self.raw_dicts):
             prr = dict(file['prr'])
             prr['time'] = map(lambda dt: datetime.datetime.fromtimestamp(dt), prr['time'])
             n = file['n']
             k = file['k']
             throughput = float(k)/n
 
-            delta_half = datetime.timedelta(minutes=3)
+            delta_half = datetime.timedelta(minutes=2, seconds=36)
 
             prr_f = {'time': [prr['time'][0]],
                    'sent': [0],
@@ -222,7 +211,7 @@ class FEC_Plotter(object):
                     prr_f['coded_without_error'][prr_index] += prr['coded_without_error'][time_index]
                     prr_f['decoded_without_error'][prr_index] += prr['decoded_without_error'][time_index]
                 else:
-                    prr_f['time'].append(reference_time)
+                    prr_f['time'].append(reference_time + delta_half)
                     prr_f['sent'].append(prr['sent'][time_index])
                     prr_f['received'].append(prr['received'][time_index])
                     prr_f['received_without_error'].append(prr['received_without_error'][time_index])
@@ -236,22 +225,84 @@ class FEC_Plotter(object):
             for ii in range(len(prr_f['time'])):
                 all_received = prr_f['received'][ii]
                 if all_received > 0:
-                    prr_f['received_without_error'][ii] = float(prr_f['received_without_error'][ii]) / all_received * throughput
+                    prr_f['received_without_error'][ii] = float(prr_f['received_without_error'][ii]) / all_received
                     prr_f['decoded_without_error'][ii] = float(prr_f['decoded_without_error'][ii]) / all_received * throughput
                     prr_f['coded_without_error'][ii] = float(prr_f['coded_without_error'][ii]) / all_received * throughput
 
-            ax.plot_date(prr_f['time'], prr_f['decoded_without_error'], markersize=0, c=colors[color_index], linestyle='-', linewidth=1)
+            if len(legend['patches']) == 0:
+                ax.plot_date(prr_f['time'], prr_f['received_without_error'], markersize=0, c='k',
+                         linestyle='--',
+                         linewidth=2)
+            lines, = ax.plot_date(prr_f['time'], prr_f['decoded_without_error'], markersize=0, c=colors[color_index], linestyle='-', linewidth=1.5)
             color_index = (color_index + 1) % (len(colors) - 0)
+            legend['patches'].append(lines)
+            legend['labels'].append("k = {}".format(k))
+
         ax.set_ylim(ymin=0, ymax=1)
         ax.set_ylabel('Throughput', fontsize=18)
+
+        if labels != None:
+            legend['labels'] = labels
+            ax.legend(legend['patches'],
+                      legend['labels'],
+                      loc=3,
+                      prop={'size': 12})
+        # else:
+            # ax.annotate('k=60', xy=(prr['time'][5],6.05/8), xytext=(prr['time'][30], 4.2 / 8),
+            #             arrowprops=dict(facecolor='w', edgecolor='k', linewidth=0.75, width=2, shrink=0.05, frac=0.23, headwidth=6))
+            # ax.annotate('k=74', xy=(prr['time'][5], 7.45 / 8), xytext=(prr['time'][40], 5.3 / 8),
+            #             arrowprops=dict(facecolor='w', edgecolor='k', linewidth=0.75, width=2, shrink=0.05, frac=0.2, headwidth=6))
 
         if nax == None:
             fig.autofmt_xdate()
 
         return ax
 
+    def create_multiple_plots(self):
+        fig, axarr = plt.subplots(2, sharex=True)
+        fig.set_size_inches(8 * 0.625, 0.625 * 2 * 5.5)
+
+        self.create_throughput_plot(axarr[0])
+        # self.create_mean_time_plot_for_key('Byte Errors', axarr[1])
+        # self.create_mean_time_plot_for_key('LQI', axarr[3])
+        self.create_mean_time_plot_for_key('Temperature', axarr[1])
+
+        fig.autofmt_xdate()
+
+        # self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, "-".join(keys)))
+        # plt.savefig("{}_{}.pdf".format(self.basename, "-".join(keys)), bbox_inches='tight', pad_inches=0.1)
+        # plt.close()
+
+        return axarr
+
+    def create_multiple_plots_prr(self):
+        fig, axarr = plt.subplots(2, sharex=True)
+        fig.set_size_inches(8 * 0.625, 0.625 * 2 * 5.5)
+
+        self.create_prr_plot(axarr[0], dict(self.raw_dicts[0]['prr']), "PRR Original")
+        self.create_prr_plot(axarr[1], dict(self.raw_dicts[1]['prr']), "PRR Simulation")
+
+        # self.create_throughput_plot(axarr[2], ["Original", "Simulation"])
+
+
+        fig.autofmt_xdate()
+
+        # self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, "-".join(keys)))
+        # plt.savefig("{}_{}.pdf".format(self.basename, "-".join(keys)), bbox_inches='tight', pad_inches=0.1)
+        # plt.close()
+
+        return axarr
+
     def save_throughput_plot(self):
         plot = self.create_multiple_plots()
+        if plot != None:
+            self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, "Throughput"))
+            plt.savefig("{}_{}.pdf".format(self.basename, "Throughput"), bbox_inches='tight', pad_inches=0.1)
+            plt.close()
+
+
+    def save_prr_and_throughput_plots(self):
+        plot = self.create_multiple_plots_prr()
         if plot != None:
             self.logger.debug("Saving Plot to file: '{}_{}'".format(self.basename, "Throughput"))
             plt.savefig("{}_{}.pdf".format(self.basename, "Throughput"), bbox_inches='tight', pad_inches=0.1)
