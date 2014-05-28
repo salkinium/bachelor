@@ -1,2 +1,23 @@
-\chapter{Forward Error Correction}
+\chapter{\acl{FEC}}
+\label{chap:forward_error_correction}
+
+In the last chapters, we described the effect of temperature on \ac{BER} patterns and \ac{PRR}, without drafting any specific recommendations how to improve this loss of link quality.
+\ac{FEC} is a well known technique to improve throughput in links of poor quality, however, once a \ac{ECC} and its parameters have been chosen, usually they remain static and do not change over time.
+This means that for links where the quality is not stable over time, as in \acp{WSN}, the chosen \ac{ECC} incurs unneeded overhead in links with overal good link quality, and underperforms in links with poor quality.
+
+We therefore wanted to investigate how using temperature as an indicator for adapting \ac{ECC} parameter can benefit \ac{PRR} and throughput and what improvements and limitations to expect.
+In doing so, we are moving away from a macro-view of all influences on link quality to focus on the impact of temperature on \ac{FEC} on \emph{one} link at a time.
+
+We extended the control software described in Section~\ref{sec:control_software} to encode messages to be sent and to decode received messages with an \ac{FEC} scheme.
+The messages are logged in the same format, with the additional information of the FEC scheme and coding strength.
+This allows us to reuse our existing evaluation software to easily map error-free \ac{PRR} to \emph{decoded} error-free \ac{PRR}.
+
+
+\input{chapters/06x_choice_fec}
+
+\input{chapters/06x_simulation_rs}
+
+\input{chapters/06x_comparison_rs}
+
+\input{chapters/06x_discussion}
 

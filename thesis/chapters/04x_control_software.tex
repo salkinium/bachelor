@@ -1,0 +1,26 @@
+\section{Control Software}
+\label{sec:control_software}
+
+The motes and temperature boxes are connected via USB-to-Serial converters to a computer, and controlled with a Python program using the TinyOS Python SDK~\cite{tinyos.net}.
+Since all motes are connected to one computer, packet loss due to colliding transmissions is avoided via central scheduling of transmissions.
+The software holds virtual representations of the mote, temperature controller and link, and logs experiment results to disk.
+A simple scripting language allows the definition of commands that are interpreted by the runtime and executed serially so that experiments can be described in independent and compact form.
+Multiple scripts can be added, so that experiments can run unsupervised around the clock.
+
+During an experiment all transmissions and receptions are written to a log in ASCII format, which includes a timestamp, sending and receiving node ids, a sequence number, link quality metadata, mote temperature and the entire \ac{MPDU} payload, including \ac{FCS}.%, as shown in Listing~\ref{lst:log_example}.
+These logs describe the entire experiment in a unprocessed format, which is then read by the evaluation scripts that reassemble them into messages and links.
+
+This modular software setup allows for a lot of freedom when designing these experiments, as all evalutation data is based upon these unprocessed logs.
+This enables us to use one experiment for multiple purposes by focusing on different parameters, of which we will make use later in in Chapter~\ref{chap:forward_error_correction}.
+
+\begin{listing}[t]
+\begin{lstlisting}[breaklines=true]
+timestamp=2014-05-03 09:22:21,752	mode=tx	id=0	seqnum=0	temperature=29.9	length=93	data=[...]	power=3
+timestamp=2014-05-03 09:22:21,753	mode=rx	id=1	seqnum=0	temperature=33.0	timeout=1
+
+timestamp=2014-05-03 09:22:21,890	mode=tx	id=1	seqnum=1	temperature=33.0	length=93	data=[...]	power=3
+timestamp=2014-05-03 09:22:21,890	mode=rx	id=0	seqnum=1	temperature=29.9	length=93	data=[...]	rssi=-90	lqi=104 crc=1 timeout=0
+\end{lstlisting}
+\caption{A log excerpt showing two transmissions, of which the first reception timed out. The raw data field is ommited for clarity.}
+\label{lst:log_example}
+\end{listing}

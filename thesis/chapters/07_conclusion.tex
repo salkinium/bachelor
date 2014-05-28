@@ -1,0 +1,60 @@
+\chapter{Conclusion}
+
+This work investigated the effects of temperature on bit error patterns and \ac{PRR} in the context of low power communications as used in \acp{WSN}.
+
+We began with a description of the low-cost design of our testbed, which allows fine control of mote temperature, mote orientation and experiment execution.
+This testbed was the foundation, which allowed us to create and control links with high \ac{BER} between CC2420 radios at different temperatures.
+Due to problems with the serial communication between mote and PC, we measured microcontroller clock drift and found the \ac{DCO}calibration algorithm in TinyOS not to be working above \SI{55}{\celsius}, and provided and tested a correction method.
+
+Then we showed that bit errors follow a distinct distribution, which is influenced by payload content, confirming findings by Schmidt~\etal~\cite{Schmidt2013} and extending them with a classification of pattern magnitudes.
+We found two bit error patterns, which we did not know before, due to their rare occurrence.
+Furthermore, we saw no influence of temperature on these patterns.
+
+The experiments were completed with a detailed investigation into \ac{PRR} asymmetry, when transmitter and receiver were heated to different temperatures.
+Our results showed that the receiver is more vulnerable to an increase in temperature than the transmitter, thereby disproving findings by Boano~\etal~\cite{Boano2013}.
+
+We used these findings to create a trace-based simulator to study the effects of temperature on \ac{FEC} usage, and evaluated the simulators performance, which we found accurate.
+Using traces of our real experiments, we simulated several \ac{RS} encoding strengths and compared them based on normalized throughput.
+On this basis we proposed a minimum encoding strength of 12.5\% overhead, which is increased with temperature to a maximum of 25\% overhead.
+
+
+
+% It seems we are missing a independent \ac{LQE} across platforms and testbeds.
+% This exact problem has been summarized by Baccour~\etal{} in their survey~\cite{Baccour2012}.
+% The authors come to the conclusions that of the hardware-based \ac{LQE}s, \ac{RSSI} has the worst accuracy, especially for intermediate links, and that \ac{LQI} is a better indicator of \ac{PRR} than \ac{RSSI}, as we have pointed out too.
+% They come to the conclusion that software-based \ac{LQE}s are better at describing link quality than hardware-based \ac{LQE}s.
+
+\newpage
+
+\section*{Future Work}
+
+The results of our experiment warrant further investigations into several topics.
+
+In Section~\ref{sec:link_quality} we briefly described the difficulty we encountered in creating a link with the right \ac{BER} even when using our mote harness from Section~\ref{sec:mote_harness}.
+An interesting addition to this harness could be a motor controlled z-axis to further automate link quality selection via antenna orientation in a closed-loop controller setup.
+In that respect, it might be more practical to rebuild this harness partially out of LEGO Technic parts, which would make the mechanic aspects of this function much easier.
+
+Concerning the limitations of the \ac{DCO} calibration algorithm of TinyOS described in Section~\ref{sec:clock_drift}, we filed a bug report on their open-source project page.
+We hope that this raises awareness of the algorithm's performance and prompts a fix.
+
+In Section~\ref{subsec:pattern_anomalies} we described two bit error patterns, which were very different to what we recorded in all other experiments we ran.
+Further investigation is required to understand what creates these patterns and whether they exhibit different Hamming distances than described by Schmidt~\etal~\cite{Schmidt2013} and Hermans~\etal~\cite{Hermans2014}.
+
+Further work is required to validate our proposals regarding temperature dependent \ac{RS} coding overhead using simulation and real experiments.
+Even though our simulation was accurate enough for our conclusions, they were based on four real traces, which certainly do not cover all possible link qualities that can be expected in real world deployments.
+
+% It is important to notice, that in regions with high link quality, especially at low temperature, \ac{ARQ} might outperform \ac{FEC} in energy efficiency as reported by Tian~\etal~\cite{Tian2008}.
+% Therefore our results might be best deployed in a hybrid \ac{ARQ} scheme~\cite{Liu1997}, where \ac{FEC} is only deployed once the temperature reaches a certain threshold.
+
+
+% \todo{we logged all raw data, so we could use it to test software-based \ac{LQE}s~\cite{Baccour2012}}
+
+% \todo{Correlation threshold of the CC2420 can be user defined~\cite{Liang2010}}
+
+% This link asymmetry can lead to some interesting situations, where a mote at high temperature is able to transmit messages, but not receive them.
+% Looking at their own temperature, mote would receive another hint in whether the lack of received messages is caused by a missing transmitter, or by its own disability to receive messages.
+% For example, when no messages are received after a timeout, a failure of the transmitter is more likely when the receiver is at low temperature than at high temperatures.
+
+% In a system that makes smart decisions based on information from multiple motes, such information could be used to judge whether the system is still functionally intact and then trigger a backup program, which reacts autonomously to the local sensor data collected but still notifies the rest of the network of its actions.
+% Motes that are not in this backup mode can very likely receive these transmissions and augment the group decisions with the constraints of these autonomously acting motes.
+% Therefore a failure of the entire system is delayed or prevented, by using controlled degradation of the system, which might not be as smart as before, but at least still providing a rudimentary service.

@@ -1,0 +1,20 @@
+\section{Discussion}
+
+Considering that the goal of using an \ac{FEC} in the context of low power networks such as \ac{WSN}s is to maximize energy efficiency of communications, we are not only looking for the $k$ with maximum throughput, but also with the least retransmissions.
+We also have to consider that the link quality can already be poor at low temperature, therefore using no parity bytes at low temperatures is not a good idea either.
+
+As per our findings, we propose one possible \ac{RS} scheme starting with $k=70$, which is 12.5\% overhead (the same as the popular $RS(255,223)$~\cite{Ma2009}), at low temperatures and linearly increase this to $k=60$ (or 25\% overhead) as receiver temperature increases to $70\,^{\circ}\mathrm{C}$ and above.
+Starting with $k=70$ will give some protection against a random decrease in link quality as seen in Figure~\ref{fig:throughput_link_01_receiver_fec}.
+In cases of extremely high bit error, such as in Figure~\ref{fig:throughput_link_10_receiver_fec}, we can still regain some throughput by using $60-80\%$ coding overhead with $k=30$ or $k=20$.
+However, considering the extremely low \ac{PRR} in this area (compare with Figure~\ref{fig:prr_link_10_receiver_fec}), most of these messages will likely never be received anyway, which makes this option only viable when communication at these temperatures is absolutely necessary.
+
+The results of Boano~\etal~\cite{Boano2013} strongly suggested that the loss in \ac{PRR} is more pronounced when heating the transmitter than the receiver.
+This would have allowed us to use local temperature measurements to adapt the coding strength of our \ac{FEC} scheme to counteract the loss in \ac{PRR}.
+Unfortunately, our results firmly oppose the findings of Boano~\etal{}: heating the receiver creates a higher loss in \ac{PRR} than heating the transmitter, therefore making such an approach unusable.
+However, using temperature as another source for assessing link quality has the distinct advantage of being always available on the receiver locally, compared to \ac{LQI} and \ac{RSSI}, which requires a message to be received first.
+
+We therefore propose another solution to adapt \ac{FEC} strength:
+the receiver should monitor its local temperature and send out a warning broadcast to all potential transmitters, before its temperature becomes too high.
+The transmitters can then address this mote with the appropriate \ac{FEC} strength.
+The advantage of this active, preemptive approach over backchanneling link quality information is that in setups where transmissions only occur sparsely, a ``test'' transmission to judge link quality is not required.
+

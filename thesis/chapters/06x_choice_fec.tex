@@ -1,0 +1,37 @@
+\section{Choice of \acs{FEC} Scheme}
+
+Choosing a coding scheme is not only a matter of its error correction capabilities, but also about the complexity of its coder and decoder, considering the tight computational resources of a \ac{WSN} mote.
+Practical implementations are therefore limited to cyclic linear block coding, with the most widely used codes being binary \ac{BCH} and non-binary \ac{RS} codes, which can be combined with interleaving and code shortening~\cite{Liu1997}.
+Furthermore, since data payload size is limited to 125 bytes by the \ac{MPDU}, of which we use 93 in our messages (with 80 bytes data), a low coding overhead among \ac{ECC}s with the same error correction capability is preferred.
+
+A \ac{RS} code works over $m$-bit symbols, and is denoted as $RS(n, k)$, where $n$ is the number of $m$-bit symbols in a codeword, and $k$ the number of original $m$-bit data symbols.
+This leaves $n-k$ parity $m$-bit symbols, as shown in Figure~\ref{fig:rs_codeword}.
+The symbol size $m$ can be set to bit-level, byte-level or packet-level size. We will use byte-level ($m=8$) symbol sizes, since they are efficient to work with on a microcontroller.
+A \ac{RS} decoder can correct up to $t=(n-k)/2$ symbol errors, and up to $2t$ erasures, if the positions of the symbol errors are known~\cite{Liu1997}.
+
+Similarly, for symbol size $m \ge 3$ and symbol error occurance $t < 2^{m-1}$, a \ac{BCH} code encodes block lengths of $n = 2^m - 1$ bit with $n-k \le mt$ parity check bits by multiplication with a generator matrix, that contains a $n \times n$ identity and a $n \times (n-k)$ binary matrix.
+The decoder can construct a parity matrix using this information, which allows correction of $t$-bit errors, depending on the parameters chosen~\cite{Liu1997}.
+
+Since the \ac{RS} scheme works by correcting entire $m$-bit symbols ($m=8$ for our case), burst errors up to $m$-bit in the same symbol require only correcting this specific symbol, while one-bit errors in many different symbols requires correcting all of these symbols.
+\ac{RS} codes therefore perform better than \ac{BCH} codes in conditions with burst errors as described in Subsection~\ref{subsec:effects_of_board_layout}, but worse if same amount of bit errors are spread around more independently.
+The performance of \ac{BCH} codes can be improved however, by interleaving symbols after encoding before transmission, which spreads out burst errors into many single bit errors.
+However, \ac{BCH} codes generally require more transmission overhead compared with \ac{RS} codes of the same error correction capabilities.
+
+\ac{RS} codes are well understood coding schemes, which have been compared to many others.
+By using \ac{RS} codes as a benchmark we enable application of our results onto other, more complex schemes, such as a modified Turbo Code~\cite{Schmidt2009} and \ac{LDPC}~\cite{Sartipi2004} codes, which have been shown to outperform cyclic linear block codes.
+Furthermore, a \ac{RS} implementation optimized for TinyOS, called TinyRS~\cite{Liang2010}, exists and therefore does not need to be implemented manually.
+
+\begin{figure}[t]
+	\begin{tikzpicture}[>=stealth', |<->|, very thick, shorten <=-0.5pt, shorten >=-0.5pt]
+
+		\draw[thick] (0,-0.35) rectangle (10,0.35) node[midway] {Data};
+		\draw[fill=slightgray, thick] (10,-0.35) rectangle (15,0.35) node[midway] {Parity};
+
+		\draw (0,0.7) -- (10,0.7) node[midway, above] {$k$};
+		\draw (10,0.7) -- (15,0.7) node[midway, above] {$80 - k$};
+		\draw (0,-0.7) -- (15,-0.7) node[midway, below] {$n = 80$};
+
+	\end{tikzpicture}
+	\caption{Structure of an $RS(n, k)$ encoded codeword of 80 bytes length.}
+	\label{fig:rs_codeword}
+\end{figure}

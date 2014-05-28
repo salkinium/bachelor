@@ -1,3 +1,51 @@
 \chapter{Introduction}
 
+With the introduction of more powerful low-power embedded devices, such as small microcontrollers, and the increased availability of low-cost radio transceivers especially in the last decade, more and more applications have been developed that enrich their functionality by receiving input from our environments.
+Such applications can help us to use natural resources, such as farm land or forests, more efficiently, or streamline industrial processes by retrofitting more data sampling points, or simply alarm us when we forget to water the plants at home.
+
+Concepts of augmenting our environments with connected sensors and actuators have been talked about for many years, with the most prominent concept being the \ac{IoT}.
+Here everyday objects are able to communicate with each other over local networks or the Internet and come to smart decisions collectively.
+This infusion of information about the real into the virtual world will keep growing with many new and exciting ways to improve our quality of life.
+
+However, these concepts are built on very new technology, which has to be understood to be improved for the next generation of such devices.
+The common culprit of today's mobile devices are their battery lives.
+Even though impressive advancements have been made, especially in the area of smart phones, charging or exchanging batteries is cumbersome at best, and, in regard to sensor devices, impractical when they are distributed over large areas.
+It is therefore imperative to extend battery life for as long as possible, which means not only using low-power hardware, but also merging it with energy-efficient software.
+
+Fortunately, long and intensive computations do not have to be performed on the sensor devices locally, but can be delegated to a server connected to the power grid.
+For that however, the sensor nodes must communicate using radio communication, which is by the laws of physics and electrical engineering still inherently energy-inefficient, especially compared to wired communication.
+
+What sounds simple actually is complicated by the fact that radio communication is at the mercy of the environment, which introduces noise into the signal and strongly influences signal propagation.
+Further complications arise with different antenna designs, the limitations of the modulation scheme and non-linearities in analog circuitry.
+This leads to packets being corrupted or not being received at all, requiring the retransmissions of the original packet until it is received error-free.
+However, in conditions of poor link quality this might not even be possible.
+Hence, to reduce energy consumption, radio communication, especially retransmissions, must be kept to a minimum while not impairing functionality of the original application.
+
+Additionally, a typical \acl{WSN} is deployed outside and its nodes are protected by air-tight containers from precipitation.
+On a sunny day, temperatures inside these containers can climb well above outside air temperature, which influence radio and microcontroller performance quite dramatically.
+In this thesis we focus on what impact temperature has on patterns in packet corruption and describe the experiments we created to study these patterns.
+We analyze the results and try to improve link quality using \acl{FEC}.
+
+The main contributions of this thesis are:
+\begin{enumerate}
+  \item
+  the creation of a low-cost testbed for testing radio performance in a temperature-controlled environment (Chapter~\ref{chap:testbed}),
+  
+  \item
+  the investigation of microcontroller clock drift, and the limitations of its calibaration in TinyOS (Chapter~\ref{chap:experiments}),
+
+  \item
+  the detailed analysis of the effects of temperature on bit error patterns and \acl{PRR}, which disproves published findings by Boano \etal~\cite{Boano2013} (Chapter~\ref{chap:experiments}),
+  
+  \item
+  the modeling of the discovered patterns using a simulator (Chapter~\ref{chap:forward_error_correction}), and
+
+  \item
+  the investigation of using an adaptive \acl{FEC} scheme to improve throughput in temperature-influenced link conditions (Chapter~\ref{chap:forward_error_correction}).
+\end{enumerate}
+
+We provide the necessary background knowledge required for understanding our work in in Chapter~\ref{chap:background}, before briefly discussing previous, related work in Chapter~\ref{chap:related_work}.
+
+
+
 

@@ -7,6 +7,9 @@
 \newcommand{\hyperrefpdfborder}{0}
 \documentclass{wissdoc-kw-eng}
 
+% \usepackage[german, english]{babel}
+% \selectlanguage{english}
+
 \newcommand{\eg}[0]{e.g., }
 \newcommand{\ie}[0]{i.e., }
 \newcommand{\etal}[0]{et~al.}
@@ -15,13 +18,16 @@
 \newcommand{\comment}[1]{}
 \definecolor{Orange}{rgb}{1,0.5,0}
 
+
 \newcommand{\todo}[1]{\textsf{\textbf{\textcolor{Orange}{[[#1]]}}}}
 
 \usepackage{tikz}
-\usetikzlibrary{decorations.pathmorphing,calc,shapes,shapes.geometric,patterns,snakes,matrix}
+\usetikzlibrary{decorations.pathmorphing,calc,shapes,shapes.geometric,patterns,snakes,matrix,arrows,positioning}
 
 \usepackage{dcolumn}
 \newcolumntype{d}[1]{D{.}{.}{#1}}
+\usepackage{siunitx}
+\DeclareSIUnit\dBm{dBm}
 
 \usepackage[printonlyused]{acronym}
 \renewcommand{\bflabel}[1]{\normalfont{\normalsize{#1}}\hfill} % keine serifenlose schrift für acronym
@@ -114,6 +120,7 @@
 %\usepackage[htt]{hyphenat} %Trennung von Typewriter-Schriften
 %\usepackage{listings}
 \usepackage{pstricks-add}
+\usepackage[official]{eurosym}
 
 
 % Tabellen mit Center und left
@@ -124,10 +131,10 @@
 \newcommand\T{\rule{0pt}{2.5ex}\rule[-1.0ex]{0pt}{0pt}}
 \newcommand\B{\rule[-1.0ex]{0pt}{0pt}}
 
-\definecolor{slightgray}{gray}{.90}
-\colorlet{slightred}{red!10}
-\colorlet{slightgreen}{green!10}
-\colorlet{slightblue}{blue!10}
+\colorlet{slightgray}{black!20}
+\colorlet{slightred}{red!30}
+\colorlet{slightgreen}{green!30}
+\colorlet{slightblue}{blue!30}
 \colorlet{moteblue}{blue!60!black!20}
 \colorlet{motered}{red!60!black!20}
 
@@ -195,10 +202,11 @@
 \mainmatter
 \include{chapters/01_introduction}
 \include{chapters/02_background}
-\include{chapters/03_testbed}
-\include{chapters/04_experiments}
-\include{chapters/05_simulation}
+\include{chapters/03_related_work}
+\include{chapters/04_testbed}
+\include{chapters/05_experiments}
 \include{chapters/06_fec}
+\include{chapters/07_conclusion}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% LITERATUR UND ANDERE VERZEICHNISSE
@@ -215,7 +223,8 @@
 \bibliographystyle{acmurl}%Art der Ausgabe: plain / apalike / amsalpha / ...
 }
 
-%% Abbildungsverzeichnis
+%% Abbildungsverzeichnisgitx
+
 %\clearpage
 %\addcontentsline{toc}{chapter}{List of Figures}
 %\listoffigures

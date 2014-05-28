@@ -1,0 +1,68 @@
+\chapter{Related Work}
+\label{chap:related_work}
+
+The research field of investigating influences of the environment on wireless link quality is large and spans many technologies and protocols.
+However, we focus on technologies deployed in low power networks such as \ac{WSN}s, where the advances in small and affordable radio technology pushed research forward.
+In a first step towards energy efficient, reliable communications, especially in battery powered applications, a deep understanding of why messages become corrupted is required.
+
+Here we present research relating to the IEEE 802.15.4 protocol used in most \ac{WSN}s, especially in the three areas this work focuses on, namely, the influence of temperature on link quality and bit error distributions within corrupted messages, as well as the use of \ac{FEC} to counteract these effects.
+
+
+\section{Effects of Temperature}
+
+Bannister~\etal~\cite{Bannister2008} were one of the first to systematically investigate the effect of temperature on the performance of the CC2420 radio.
+They connected two radios together via coaxial cable with attenuators and placed one of them in a thermal chamber with a temperature range of 25 to \SI{65}{\celsius} while measuring signal power using the \ac{RSSI}.
+The results showed a reduction of output power by $4--$\SI{5}{\dBm} when the transmitter was heated, but only \SI{3}{\dBm} reduction in measured input power when the receiver was heated.
+Boano~\etal~\cite{Boano2010} also investigated this behavior in 2010 in a real world deployment, but found no difference in \ac{RSSI} between transmitter and receiver.
+However, both works point to a loss of gain in the CC2420 \ac{LNA} as the source of the reduction in signal powers at higher temperatures.
+
+In a long-term outdoor study in 2013, Wennerstr{\"o}m~\etal~\cite{Wennerstrom2013} examined the correlation between \ac{RSSI} and \ac{PRR} and environmental factors, such as temperature, relative and absolute humidity, precipitation and sunlight.
+They found that of all environmental factors, temperature had the strongest influence, with an increase in temperature causing a significant decrease in both \ac{RSSI} and \ac{PRR}.
+This was further researched by Boano~\etal~\cite{Boano2013}, who focused on the impact of temperature on \ac{RSSI}, \ac{SNR}, Noise Floor, \ac{PRR} and \ac{LQI}.
+They determined a negative impact of temperature on all these values and expanded their work by looking at the asymmetry of \ac{PRR} when heating the transmitter and receiver.
+They found that the loss in \ac{PRR} was more pronounced when heating the transmitter than the receiver.
+
+Finally, Z\'{u}\~{n}iga~\etal~\cite{Zuniga2013} created a summarizing report on the effect of environment variables on current \ac{WSN} motes.
+Apart from including all previous findings, they also describe a substantial negative impact of temperature on microcontroller clock drift.
+However, the CC2420 clock is compensated for temperature and experiences no such drift.
+
+
+\section{Bit Error Distributions}
+
+Liang~\etal~\cite{Liang2010} investigated bit error distributions in the context of 802.11 (WiFi) interference.
+They found that packet collisions cause burst errors, due to 802.11 packets typically being much shorter than 802.15.4 packets, particularly in the beginning of a message.
+This is due to the 802.11 sender deferring sending its packets until the 802.15.4 transmission completed, however only if the 802.15.4 sender is close enough so that its transmission power can be sensed by the 802.11 collision avoidance algorithm.
+If the 802.11 sender cannot sense the 802.15.4 transmission, the authors show an even bit error distribution across the entire packet.
+
+Schmidt~\etal~\cite{Schmidt2013} examined the bit error distributions within corrupted messages in their outdoor testbed of 20 TelosB devices.
+Similar to Liang~\etal, they found that for random payload, \ac{BER} remains stable throughout message, however, within all 4-bit symbols, the \ac{MSB} is significantly less likely to break than the 3 \ac{LSB}.
+In addition, symbols with \ac{MSB} set to 1 are more likely to break than symbols with \ac{MSB} set to 0.
+This behavior creates very different Hamming distances between the broken symbols coded in 32-bit chip sequences than defined by the 802.15.4 standard.
+The authors also looked at burst error distribution and found these errors not independently distributed, but skewed towards longer bursts.
+
+Their findings then where further completed by Hermans~\etal~\cite{Hermans2014} with an understanding of why the Hamming distances are different than expected.
+The authors discovered that the pattern fits, when their simulation of these patterns uses a \ac{MSK} instead of the \ac{OQPSK} demodulator suggested by the 802.15.4 standard.
+The \ac{MSK} demodulator can correctly receive packets sent by an \ac{OQPSK} modulator, but it outputs different code words than defined by the standard.
+The authors hypothesized that these code words then have to be translated using a table, which would create the distinct bit error patterns.
+
+
+\section{\acl{FEC}}
+
+The use of \ac{FEC} schemes in communication has been investigated before, however, the available limited resources on \ac{WSN} motes focus research in this area very much on coding and energy efficiency.
+
+Jeong~\etal~\cite{Jeong2003} investigated the performance of single- and double-bit correcting \ac{ECC} on very early \ac{WSN} motes, not using the 802.15.4 standard.
+They came to the conclusion, that using \ac{BCH} codes is simple to implement, but performs poorly when encountering burst errors.
+Busse~\etal~\cite{Busse2006} then compared the performance of a Hamming code, an interleaved double-bit correction code and a \ac{RS} code using their \ac{WSN} and found the \ac{RS} code to be the most efficient of them, both in the length of the added overhead, as well as the error correction capabilities.
+
+Using mathematical energy consumption modeling, Tian~\etal~\cite{Tian2008} showed that for small packet lengths ($<1023$ bytes) \ac{BCH} codes outperform \ac{ARQ}.
+However, research by Ma~\etal~\cite{Ma2009} points to \ac{RS} being more energy efficient than \ac{BCH} codes, especially when considering the energy consumption of transmitting the coding overhead.
+
+Ahn~\etal~\cite{Ahn2005} examined changing \ac{FEC} coding strength dynamically based on link quality properties.
+Their adaptive \ac{FEC} algorithm outperformed several static \ac{RS} codes in simulation, as well as in real traces.
+Liang~\etal~\cite{Liang2010} created and evaluated an efficient, TinyOS compatible \ac{RS} implementation, called TinyRS, during their research on bit error distributions mentioned before.
+
+
+
+
+
+

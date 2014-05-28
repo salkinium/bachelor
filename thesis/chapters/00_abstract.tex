@@ -1,12 +1,37 @@
 \cleardoublepage
 
+% \selectlanguage{german}
+
 \begin{center}
 \paragraph{Kurzfassung}
 \hrulefill
+
 \end{center}
 
-\vspace {2cm}
+Mit der Verfügbarkeit von leistungsfähigen eingebetteten Geräten und kostengün\-stigen Funkmodulen, beginnen auch immer mehr batteriebetriebene Sensorgeräte miteinander zu reden und Probleme gemeinsam zu entscheiden.
+Es ist abzusehen, dass die Benutzung solcher intelligenten Geräte in drahtlosen Sensornetzwerken in\-dustrielle Prozesse vereinfachen und unsere Lebensqualität verbessern wird.
+
+Allerdings ist die Laufzeit dieser mobilen Geräte durch ihre endliche Energiequelle, die meist nur mit viel Aufwand zu wechseln ist, beschränkt. Daher braucht es eine Programmierung, die energiebewusst kommuniziert, um die Lebensdauer der Bat\-terie so weit wie möglich zu verlängern.
+Drahtlose Kommunikation ist stark durch Umweltveränderungen, allen voran die Lufttemperatur, beinflussbar, was zu Korrup\-tion oder Verlust von Paketen führen kann und ein erneutes Versenden des Pakets nach sich zieht.
+
+In dieser Arbeit beschreiben wir eine kostengünstige Testplatform zum Testen der Funkverbindungen in einer temperaturkontrollierten Umgebung. Mit dieser Plat\-form untersuchen wir die Empfangsraten und die Bitfehlerverteilungen in korrupten Paketen.
+Unsere Ergebnisse widerlegen frühere veröffentlichte Ergebnisse.
+Schließ\-lich wenden wir diese Erkenntnisse auf die Programmierung eines Simulators an, mit dem wir untersuchen, wie sich Temperatur als Eingabegröße einer adaptiven Vorwärtsfehlerkorrektur verhält, um damit die Empfangsraten korrupter Pakete zu verringern.
+
+% \selectlanguage{english}
+
+\vspace {0.5cm}
 \begin{center}
 \paragraph{Abstract}
 \hrulefill
 \end{center}
+
+With the availability of powerful embedded devices and inexpensive radio communication, ever more battery powered sensor devices make use of the added connectivity to talk to each other and decide problems collectively.
+It is envisioned that usage of such smart devices in \acl{WSN}s will streamline industrial processes as well as improve our quality of life.
+
+However, the runtime of these mobile devices is limited by their finite power source, which most often are impractical to exchange.
+Therefore energy-aware programming and communication is required to prolong battery life for as long as possible.
+Unfortunately, wireless communication is strongly influenced by environmental changes, most prominently air temperature, which can lead to packet corruption or loss and requires energy-consuming retransmissions.
+
+In this work we describe a low-cost testbed for testing radio performance in a temperature-controlled environment, with which we examine packet reception rates and bit error distributions within packet corruption. Our results disprove previous published findings.
+Finally, we apply these findings on building a simulator, with which we investigate using temperature as an input for an adaptive \acl{FEC} scheme to improve packet reception rates and thereby reduce unnecessary retransmissions.

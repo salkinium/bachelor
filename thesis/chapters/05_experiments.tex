@@ -1,0 +1,41 @@
+\chapter{Experiment Results}
+\label{chap:experiments}
+
+This chapter describes the experiment setups we designed to focus on the effect of temperature on the mote hardware and link quality.
+We present the evaluation of the experiment results and compare them to related work.
+
+\section{Locations}
+
+We executed these experiments in two locations: a temperature-controlled server room in a basement and a large empty storage space.
+We chose these locations for their low visitation frequency, since the presence of moving objects, especially humans, alters the link quality, which of course was undesirable.
+
+In the server room, a space of about \SI{3 x 12}{\metre} was available, with a thick load-bearing concrete wall on the one side and metallic server racks on the other.
+This environment made for a very good link quality even at low power, which was the opposite of what we needed.
+We tried a power setting of 3 (\SI{-25}{\dBm}), but even at the maximum attainable distance in the room the link was without bit errors, therefore we settled on power setting 2 (below \SI{-25}{\dBm}), which required the motes to be very close to each other at about \SI{30}{\centi\metre}.
+Due to the difficulty of manipulating link quality with fine granularity, we only ran one experiment in this room and then relocated the setup.
+
+The storage room was larger with about \SI{10 x 15}{\metre} and had a window front and many shelves on the walls.
+Here we could use power setting 3 at about \SI{3}{\metre} distance and very accurately manipulate link quality.
+Therefore we used this location for the remaining experiments.
+
+\section{Desired Link Quality}
+\label{sec:link_quality}
+
+To create a link with the desired quality, we used a simple, live updated graphical display of \ac{LQI}, \ac{RSSI} and bit error values.
+While links of intermediate quality are relatively easy to find, we found it difficult to find the right intermediate link quality with a high enough \ac{BER} for statistically significant results, but with also enough average message receptions, especially for a longer period of time.
+These temporal characteristics have also been described by Baccour~\etal~\cite{Baccour2012}, specifically, that links of moderate average \ac{PRR} are less stable than with very low or very high \ac{PRR}.
+Furthermore, the mere presence of a person in the same room as the motes caused a dramatic change in link quality, which has also been described by Baccour~\etal
+
+We briefly considered using a controllable source of radio interference as proposed by Boano~\etal~\cite{Boano2009} to be able to make it easier to create the desired link qualities, however, its effect on the \ac{BER} patterns is unknown and we did not want to risk a corruption of our test results.
+Therefore, finding and verifying the desired link quality with the acceptable amount of bit errors regularly took hours, especially when the motes where to be heated to different temperatures.
+Even then, we had to repeat several experiments when link quality inexplicably changed.
+An automated link quality ``creator'' using a motorized mote harness would certainly have helped.
+
+All experiments were done using the on-board PCB antenna sending on channel 26, which is outside the allotted spectrum of 802.11, to minimize WiFi interference~\cite{Liang2010}.
+
+
+\input{chapters/05x_clock_drift}
+
+\input{chapters/05x_bit_patterns}
+
+\input{chapters/05x_packet_reception}
