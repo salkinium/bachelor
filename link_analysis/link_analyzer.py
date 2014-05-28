@@ -159,12 +159,15 @@ class Analyzer(object):
                 normed_bits_array = bits_array
 
             fig, ax = plt.subplots(1)
+            x, y = fig.get_size_inches()
+            fig.set_size_inches(x * 0.625, y * 0.625)
+
             lines = ax.plot(range(len(normed_bits_array)), normed_bits_array)
-            pylab.setp(lines, color='k', linewidth=0.2)
+            pylab.setp(lines, color='k', linewidth=0.6)
 
             # ax.grid(b=True, which='major', color='0.90', linestyle='-')
             ax.set_axisbelow(True)
-            ax.add_patch(Rectangle((0, 0), 12*8, 10000, color='0.90'))
+            ax.add_patch(Rectangle((0, 0), 12*8, 10000, color='0.80'))
             ax.set_xlim(xmin=0, xmax=max_length*8)
             ax.set_ylim(ymin=0, ymax=0.0025)
             plt.xticks(range(12*8, max_length*8, 64), (range(0, max_length*8, 64)))
@@ -292,33 +295,38 @@ class Analyzer(object):
             one_bit_errors = float(sum(burst_error[1])) / len(burst_error[1])
             relative_burst_errors = [ [0.0] * len(burst_error[length]) for length in range(len(burst_error)) ]
             confidence_intervals = [[0] * (16+1), [0] * (16+1)]
-            mean_burst_error = [0] * (16+1)
+
+            sum_burst_error = [0] * (16 + 1)
+            mean_burst_error = [0] * (16 + 1)
+            df_burst_error = [0] * (16 + 1)
+            sd_burst_error = [0] * (16 + 1)
 
             for length in range(1, len(burst_error)):
                 # normalize over mean of 1 bit errors
                 for sample in range(len(burst_error[length])):
                     relative_burst_errors[length][sample] = float(burst_error[length][sample]) / one_bit_errors
+                sum_burst_error[length] = sum(burst_error[length])
 
                 # confidence intervals
                 n, min_max, mean, var, skew, kurt = stats.describe(relative_burst_errors[length])
-                R = stats.norm.interval(0.95, loc=mean, scale=math.sqrt(var) / math.sqrt(len(burst_error[length])))
-                confidence_intervals[0][length] = R[0]
-                confidence_intervals[1][length] = R[1]
-                # mean = np.mean(relative_burst_errors[length])
-                # r = np.percentile(relative_burst_errors[length], 99)
-                # confidence_intervals[0][length] = mean * (1+r)
-                # confidence_intervals[1][length] = mean * (1-r)
+                dev = math.sqrt(var) / math.sqrt(len(burst_error[length]))
+                dof = len(burst_error[length]) - 1 + 1 - 1
+
                 mean_burst_error[length] = mean
+                sd_burst_error[length] = dev
+                df_burst_error[length] = dof
 
             fig, ax = plt.subplots(1)
             x, y = fig.get_size_inches()
             fig.set_size_inches(x * 0.625, y * 0.625)
-            ax.errorbar(range(len(burst_error)), mean_burst_error, yerr=confidence_intervals, fmt='', ecolor='k', capthick=2)
+            ax.plot(range(len(sum_burst_error)), sum_burst_error)
+            # ax.errorbar(range(len(mean_burst_error)), mean_burst_error, yerr=stats.t.ppf(0.95, df_burst_error)*sd_burst_error,
+            #             fmt='', ecolor='k', capthick=2)
 
             ax.set_yscale('log')
             ax.set_xlim(xmin=1, xmax=16)
-            ax.set_ylim(ymin=1e-6, ymax=1e-0)
-            ax.set_ylabel('Relative occurances', fontsize=18)
+            ax.set_ylim(ymin=0, ymax=10e7)
+            ax.set_ylabel('Accumulated occurances', fontsize=18)
             ax.set_xlabel('Error burst length', fontsize=18)
             return fig, ax
 
@@ -402,7 +410,7 @@ class Analyzer(object):
                     prr['received'][ii] = float(prr['received'][ii]) / all_sent
                     prr['received_without_error'][ii] = float(prr['received_without_error'][ii]) / all_sent
                     prr['decoded_without_error'][ii] = float(prr['decoded_without_error'][ii]) / all_sent
-                    prr['coded_without_error'][ii] = float(prr['coded_without_error'][ii]) / all_sent
+                    # prr['coded_without_error'][ii] = float(prr['coded_without_error'][ii]) / all_sent
 
             if nax == None:
                 fig, ax = plt.subplots(1)
@@ -511,11 +519,11 @@ class Analyzer(object):
         keys = ['LQI', 'RSSI', 'Bit Errors', 'Byte Errors', 'Burst Errors', 'Temperature',
                 'Hist RSSI', 'Hist LQI', 'Hist Bit Errors', 'Hist Byte Errors',
                 'Xor',
-                # 'PRR'
+                'PRR'
                 ]
         for key in keys:
             self.save_plot_for_key(key)
-        self.create_time_plots_for_multiple_keys(['PRR', 'Bit Errors', 'LQI', 'RSSI', 'Temperature'])
+        # self.create_time_plots_for_multiple_keys(['PRR', 'Bit Errors', 'LQI', 'RSSI', 'Temperature'])
 
     def save_plot_to_file(self, plot, filename):
         if len(self.links) > 0 and plot:
