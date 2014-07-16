@@ -33,6 +33,9 @@ typedef nx_struct test_header {
   nx_uint16_t nodeid;
   nx_uint16_t seqnum;
   nx_uint8_t metadata[2];
+#ifdef NOISE_READING
+  nx_uint16_t noise;
+#endif
 } test_header_t;
 
 typedef nx_struct radio_msg {

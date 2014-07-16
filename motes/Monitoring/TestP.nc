@@ -23,6 +23,10 @@ module TestP {
     interface Check as RecvCheck;
     interface HplMsp430Usart as Usart;
 
+#ifdef NOISE_READING
+    interface Read<uint16_t> as Noise;
+#endif
+
 #ifdef SENSOR_READINGS
     interface Read<uint16_t> as Temp;
     interface Read<uint16_t> as Hum;
@@ -38,6 +42,10 @@ implementation {
   serial_msg_t conf;
   message_t serial_pkt;
   bool serial_busy;
+
+#ifdef NOISE_READING
+  serial_msg_t receivedmsg;
+#endif
 
 #ifdef SENSOR_READINGS
   message_t sensor_pkt;
@@ -105,7 +113,9 @@ implementation {
   }
 
   void processMsg(uint8_t type, message_t *msg, uint8_t *metadata){
+#ifndef NOISE_READING
     serial_msg_t receivedmsg;
+#endif
     receivedmsg.header.type = type;
     receivedmsg.header.channel = conf.header.channel;
     receivedmsg.header.power = conf.header.power;
@@ -114,8 +124,17 @@ implementation {
     receivedmsg.header.seqnum = conf.header.seqnum;
     memcpy(receivedmsg.header.metadata, metadata, 2);
     memcpy(receivedmsg.data, msg, TOSH_DATA_LENGTH-sizeof(test_header_t));
+#ifdef NOISE_READING
+    if (type == SEND){
+      call SerialQueue.enqueue(receivedmsg);
+      post sendSerial();
+    } else {
+      call Noise.read();
+    }
+#else
     call SerialQueue.enqueue(receivedmsg);
     post sendSerial();
+#endif
   }
 
 
@@ -134,7 +153,12 @@ implementation {
     if (conf.header.channel != call CC2420Config.getChannel()){
       call CC2420Config.setChannel(conf.header.channel);
     } else if (conf.header.nodeid == TOS_NODE_ID){
+#ifdef NOISE_READING
+      receivedmsg.header.type = SEND;
+      call Noise.read();
+#else
       call TimerSend.startOneShot(10);
+#endif
     }
     return msg;
   }
@@ -178,6 +202,18 @@ implementation {
     if (conf.header.nodeid == TOS_NODE_ID)
       call TimerSend.startOneShot(10);
   }
+
+#ifdef NOISE_READING
+  event void Noise.readDone(error_t result, uint16_t val){
+    receivedmsg.header.noise = val;
+    if (receivedmsg.header.type == SEND){
+      call TimerSend.startOneShot(10);
+    } else {
+      call SerialQueue.enqueue(receivedmsg);
+      post sendSerial();
+    }
+  }
+#endif
 
 #ifdef SENSOR_READINGS
   task void sendSensor(){

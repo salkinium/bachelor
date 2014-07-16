@@ -44,6 +44,11 @@ implementation {
   TestP.SendCheck->CC2420CsmaC.Check;
   TestP.RecvCheck->CC2420ReceiveC.Check;
 
+#ifdef NOISE_READING
+  // Wiring for Noise Reading
+  TestP.Noise -> CC2420ControlC;
+#endif
+
 #ifdef SENSOR_READINGS
   components new SerialAMSenderC(AM_SENSOR_MSG) as SerialSensorSend;
   components new TimerMilliC() as SensorTimer;
