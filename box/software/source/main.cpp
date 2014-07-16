@@ -30,7 +30,7 @@ ISR(TIMER2_OVF_vect)
 
 	static uint8_t cycles(9);
 	xpcc::Clock::increment(1);
-	if (!cycles--) {
+	if (!--cycles) {
 		xpcc::Clock::increment(1);
 		cycles = 9;
 	}
