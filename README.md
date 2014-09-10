@@ -1,28 +1,18 @@
-Temperature Controlled Box
-==========================
+Bachelor Thesis Source Code
+===========================
 
-This box uses an ATmega328p to control the temperature using a heating element and a fan.
-This is part of the work on determining temperature dependency of bit error patterns in communications of Wireless Sensor Networks.
-
-Design Concept
---------------
-
-24 x 24 x 18cm box, with 5cm thick styrofoam walls.
-
-TODO
-
-### Electronics
-
-TODO
+This repository contains the entire source code of my bachelor thesis "Temperature Dependency of Bit Error Distributions in Wireless Sensor Networks".
 
 Organisation
 ------------
 
 This repository is organized as follows:
 
--	The *hardware* folder contains the schematics of the electronic assembly and the CAD drawings for the box interior.
-- 	The *software* folder contains the software for the microcontroller.
+-	The *box* folder contains the PCB schematics and the CAD drawings and embedded software for the heat box,
+- The *experiment_control* folder contains the python software for the experiment server and data logger,
+- The *link_analysis* folder contains the python software for analyzing and visualizing experiment results,
+- The *motes* folder contains the TinyOS source code for the WSN motes,
+- The *position* folder contains CAD drawings of the WSN mote holder,
+- The *thesis* folder contains the entire latex source code for my thesis.
 
-Hardware, software and case were designed by [Niklas Hauser][hauser].
-
-[hauser]: http://hci.rwth-aachen.de/hauser
+[Thesis as PDF](https://github.com/salkinium/bachelor/raw/master/thesis/thesis.pdf).
